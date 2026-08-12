@@ -15,6 +15,7 @@
     <string name="refresh_table_title">%1$d times table</string>
     <string name="action_next">Next</string>
     <string name="action_repeat">Repeat</string>
+    <string name="repeat_out_loud">Repeat out loud</string>
     <string name="choose_tables">Choose your times tables</string>
     <string name="choose_tables_supporting_text">Pick one or more tables to practise today</string>
     <string name="stage_one_placeholder">This screen will be added in a later stage.</string>

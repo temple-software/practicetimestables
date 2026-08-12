@@ -21,6 +21,8 @@ import com.example.practicetimestables.ui.components.PracticeAppBar
 import com.example.practicetimestables.ui.home.HomeScreen
 import com.example.practicetimestables.ui.refresh.RefreshScreen
 import com.example.practicetimestables.ui.refresh.RefreshViewModel
+import com.example.practicetimestables.ui.repeat.RepeatScreen
+import com.example.practicetimestables.ui.repeat.RepeatViewModel
 
 @Composable
 fun AppNavHost(
@@ -61,8 +63,28 @@ fun AppNavHost(
                 onRepeatClick = { navController.navigate(AppDestination.REPEAT.route) },
             )
         }
+        composable(AppDestination.REPEAT.route) {
+            val repeatViewModel: RepeatViewModel = viewModel(
+                factory = RepeatViewModel.factory(selectedTables),
+            )
+            val repeatUiState by repeatViewModel.uiState.collectAsStateWithLifecycle()
+            RepeatScreen(
+                language = language,
+                uiState = repeatUiState,
+                onLanguageSelected = onLanguageSelected,
+                onBackClick = {
+                    navController.popBackStack(AppDestination.HOME.route, inclusive = false)
+                },
+                onNextTableClick = repeatViewModel::advanceTable,
+                onQuizClick = { navController.navigate(AppDestination.QUIZ.route) },
+            )
+        }
         AppDestination.all
-            .filterNot { it == AppDestination.HOME || it == AppDestination.REFRESH }
+            .filterNot {
+                it == AppDestination.HOME ||
+                    it == AppDestination.REFRESH ||
+                    it == AppDestination.REPEAT
+            }
             .forEach { destination ->
             composable(destination.route) {
                 DestinationSkeleton(
@@ -72,13 +94,7 @@ fun AppNavHost(
                     onNavigationClick = {
                         when (destination.navigationAction) {
                             NavigationAction.NONE -> Unit
-                            NavigationAction.BACK -> {
-                                if (destination == AppDestination.REPEAT) {
-                                    navController.popBackStack(AppDestination.HOME.route, inclusive = false)
-                                } else {
-                                    navController.navigateUp()
-                                }
-                            }
+                            NavigationAction.BACK -> navController.navigateUp()
                             NavigationAction.HOME -> navController.navigate(AppDestination.startDestination.route) {
                                 popUpTo(AppDestination.startDestination.route) { inclusive = false }
                                 launchSingleTop = true

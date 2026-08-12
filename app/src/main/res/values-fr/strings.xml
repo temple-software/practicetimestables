@@ -15,6 +15,7 @@
     <string name="refresh_table_title">Table de %1$d</string>
     <string name="action_next">Suivant</string>
     <string name="action_repeat">Répéter</string>
+    <string name="repeat_out_loud">Répète à voix haute</string>
     <string name="choose_tables">Choisis tes tables de multiplication</string>
     <string name="choose_tables_supporting_text">Choisis une ou plusieurs tables à travailler aujourd’hui</string>
     <string name="stage_one_placeholder">Cet écran sera ajouté lors d’une étape ultérieure.</string>

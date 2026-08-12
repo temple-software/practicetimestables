@@ -15,6 +15,8 @@
     <string name="refresh_table_title">%1$d times table</string>
     <string name="action_next">Next</string>
     <string name="action_repeat">Repeat</string>
+    <string name="repeat_out_loud">Repeat out loud</string>
+    <string name="repeat_equation_without_answer" translatable="false">%1$d × %2$d =</string>
     <string name="multiplication_equation" translatable="false">%1$d × %2$d = %3$d</string>
     <string name="multiplication_sign" translatable="false">×</string>
     <string name="equals_sign" translatable="false">=</string>
