@@ -1,23 +1,35 @@
 package com.example.practicetimestables.ui.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.Color
 import com.example.practicetimestables.R
 import com.example.practicetimestables.data.preferences.AppLanguage
 import com.example.practicetimestables.ui.navigation.NavigationAction
@@ -32,7 +44,7 @@ fun PracticeAppBar(
     onLanguageSelected: (AppLanguage) -> Unit,
 ) {
     TopAppBar(
-        title = { Text(title) },
+        title = { Text(title, style = MaterialTheme.typography.titleLarge) },
         navigationIcon = {
             when (navigationAction) {
                 NavigationAction.NONE -> Unit
@@ -53,6 +65,12 @@ fun PracticeAppBar(
         actions = {
             LanguageSelector(language = language, onLanguageSelected = onLanguageSelected)
         },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            titleContentColor = MaterialTheme.colorScheme.primary,
+            navigationIconContentColor = MaterialTheme.colorScheme.primary,
+            actionIconContentColor = MaterialTheme.colorScheme.primary,
+        ),
     )
 }
 
@@ -65,16 +83,41 @@ private fun LanguageSelector(
     val english = stringResource(R.string.language_english)
     val french = stringResource(R.string.language_french)
     val currentLabel = if (language == AppLanguage.FRENCH) french else english
+    val accessibilityLabel = stringResource(R.string.language_selector_description, currentLabel)
 
     Box {
-        TextButton(onClick = { expanded = true }) {
-            Text(text = "${stringResource(R.string.language)}: $currentLabel")
+        IconButton(
+            onClick = { expanded = true },
+            modifier = Modifier.semantics { contentDescription = accessibilityLabel },
+        ) {
+            LanguageFlag(language)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             AppLanguage.entries.forEach { option ->
                 val label = if (option == AppLanguage.FRENCH) french else english
                 DropdownMenuItem(
-                    text = { Text(label) },
+                    text = {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            LanguageFlag(option)
+                        }
+                    },
+                    trailingIcon = if (option == language) {
+                        { Icon(Icons.Default.Check, contentDescription = stringResource(R.string.selected)) }
+                    } else null,
+                    modifier = Modifier
+                        .background(
+                            color = if (option == language) MaterialTheme.colorScheme.primaryContainer
+                            else Color.Transparent,
+                            shape = MaterialTheme.shapes.small,
+                        )
+                        .semantics {
+                            contentDescription = label
+                            selected = option == language
+                            role = Role.RadioButton
+                        },
                     onClick = {
                         expanded = false
                         onLanguageSelected(option)

@@ -1,14 +1,18 @@
 <resources>
     <string name="app_name">Practice Times Tables</string>
     <string name="language">Language</string>
-    <string name="language_english">English</string>
-    <string name="language_french">French</string>
+    <string name="language_english">English (UK)</string>
+    <string name="language_french">Français</string>
+    <string name="language_selector_description">Language: %1$s</string>
+    <string name="selected">Selected</string>
     <string name="navigate_back">Back</string>
     <string name="navigate_home">Return home</string>
     <string name="screen_home">Home</string>
-    <string name="screen_refresh">Refresh</string>
-    <string name="screen_repeat">Repeat</string>
+    <string name="screen_refresh">Refresh your memory</string>
+    <string name="screen_repeat">Repeat to learn</string>
     <string name="screen_quiz">Let’s Go</string>
     <string name="screen_results">Results</string>
+    <string name="choose_tables">Choose your times tables</string>
+    <string name="choose_tables_supporting_text">Pick one or more tables to practise today</string>
     <string name="stage_one_placeholder">This screen will be added in a later stage.</string>
 </resources>

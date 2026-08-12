@@ -15,18 +15,32 @@ import androidx.navigation.compose.composable
 import com.example.practicetimestables.R
 import com.example.practicetimestables.data.preferences.AppLanguage
 import com.example.practicetimestables.ui.components.PracticeAppBar
+import com.example.practicetimestables.ui.home.HomeScreen
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     language: AppLanguage,
+    selectedTables: Set<Int>,
     onLanguageSelected: (AppLanguage) -> Unit,
+    onTableToggled: (Int) -> Unit,
 ) {
     NavHost(
         navController = navController,
         startDestination = AppDestination.startDestination.route,
     ) {
-        AppDestination.all.forEach { destination ->
+        composable(AppDestination.HOME.route) {
+            HomeScreen(
+                language = language,
+                selectedTables = selectedTables,
+                onLanguageSelected = onLanguageSelected,
+                onTableToggled = onTableToggled,
+                onRefreshClick = { navController.navigate(AppDestination.REFRESH.route) },
+                onRepeatClick = { navController.navigate(AppDestination.REPEAT.route) },
+                onQuizClick = { navController.navigate(AppDestination.QUIZ.route) },
+            )
+        }
+        AppDestination.all.filterNot { it == AppDestination.HOME }.forEach { destination ->
             composable(destination.route) {
                 DestinationSkeleton(
                     destination = destination,

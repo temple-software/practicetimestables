@@ -5,17 +5,24 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.practicetimestables.data.preferences.AppLanguage
 import com.example.practicetimestables.data.preferences.UserPreferencesRepository
-import kotlinx.coroutines.flow.SharingStarted
+import com.example.practicetimestables.ui.home.toggleTableSelection
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 
 class ApplicationViewModel(
     private val repository: UserPreferencesRepository,
     initialLanguage: AppLanguage,
 ) : ViewModel() {
-    val uiState: StateFlow<ApplicationUiState> = repository.preferences
+    private val _uiState = MutableStateFlow(ApplicationUiState(language = initialLanguage))
+    val uiState: StateFlow<ApplicationUiState> = _uiState.asStateFlow()
+
+    init {
+        repository.preferences
         .map { preferences ->
             ApplicationUiState(
                 language = preferences.language,
@@ -23,18 +30,21 @@ class ApplicationViewModel(
                 preferencesLoaded = true,
             )
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = ApplicationUiState(language = initialLanguage),
-        )
+            .onEach { _uiState.value = it }
+            .launchIn(viewModelScope)
+    }
 
     fun selectLanguage(language: AppLanguage) {
+        _uiState.value = _uiState.value.copy(language = language)
         viewModelScope.launch { repository.setLanguage(language) }
     }
 
-    fun selectTables(tables: Set<Int>) {
-        viewModelScope.launch { repository.setSelectedTables(tables) }
+    fun toggleTable(table: Int) {
+        val updatedTables = toggleTableSelection(_uiState.value.selectedTables, table)
+        if (updatedTables == _uiState.value.selectedTables) return
+
+        _uiState.value = _uiState.value.copy(selectedTables = updatedTables)
+        viewModelScope.launch { repository.setSelectedTables(updatedTables) }
     }
 
     class Factory(

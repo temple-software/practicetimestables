@@ -31,7 +31,9 @@ fun PracticeTimesTablesApp() {
             AppNavHost(
                 navController = rememberNavController(),
                 language = uiState.language,
+                selectedTables = uiState.selectedTables,
                 onLanguageSelected = applicationViewModel::selectLanguage,
+                onTableToggled = applicationViewModel::toggleTable,
             )
         }
     }
