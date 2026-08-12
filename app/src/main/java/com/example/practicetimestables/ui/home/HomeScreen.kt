@@ -4,7 +4,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,9 +28,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -44,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -58,9 +55,11 @@ import androidx.compose.ui.unit.dp
 import com.example.practicetimestables.R
 import com.example.practicetimestables.data.preferences.AppLanguage
 import com.example.practicetimestables.ui.components.PracticeAppBar
+import com.example.practicetimestables.ui.components.PremiumGradientButton
 import com.example.practicetimestables.ui.navigation.NavigationAction
 import com.example.practicetimestables.ui.layout.currentResponsiveLayoutInfo
 import com.example.practicetimestables.ui.theme.AppMotion
+import com.example.practicetimestables.ui.theme.educationalColors
 
 private val MaxHomeWidth = 680.dp
 private val MaxLandscapeHomeWidth = 960.dp
@@ -108,7 +107,6 @@ fun HomeScreen(
 
             key(responsiveLayout.displayRotation) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                    HomeBackground()
                     if (hasLandscapeSpace) {
                         LandscapeHomeContent(
                             selectedTables = selectedTables,
@@ -183,28 +181,6 @@ private fun LandscapeHomeContent(
             onQuizClick = onQuizClick,
             evenlyDistributed = true,
             modifier = Modifier.weight(0.8f).fillMaxHeight(),
-        )
-    }
-}
-
-@Composable
-private fun HomeBackground() {
-    val primaryTone = MaterialTheme.colorScheme.primaryContainer
-    val tertiaryTone = MaterialTheme.colorScheme.tertiaryContainer
-    Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .clearAndSetSemantics {},
-    ) {
-        drawCircle(
-            color = primaryTone.copy(alpha = 0.34f),
-            radius = size.minDimension * 0.38f,
-            center = androidx.compose.ui.geometry.Offset(size.width * 0.04f, size.height * 0.12f),
-        )
-        drawCircle(
-            color = tertiaryTone.copy(alpha = 0.22f),
-            radius = size.minDimension * 0.3f,
-            center = androidx.compose.ui.geometry.Offset(size.width * 0.96f, size.height * 0.82f),
         )
     }
 }
@@ -316,6 +292,7 @@ private fun TableControl(
     size: Dp,
     onClick: () -> Unit,
 ) {
+    val educationalColors = MaterialTheme.educationalColors
     val animation = tween<Dp>(AppMotion.DefaultDurationMillis)
     val elevation by animateDpAsState(
         targetValue = if (selected) 5.dp else 1.dp,
@@ -323,13 +300,13 @@ private fun TableControl(
         label = "table elevation",
     )
     val containerColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer
+        targetValue = if (selected) MaterialTheme.colorScheme.primary
         else MaterialTheme.colorScheme.surfaceContainerLow,
         animationSpec = tween(AppMotion.DefaultDurationMillis),
         label = "table colour",
     )
     val contentColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
+        targetValue = if (selected) MaterialTheme.colorScheme.onPrimary
         else MaterialTheme.colorScheme.onSurface,
         animationSpec = tween(AppMotion.DefaultDurationMillis),
         label = "table content colour",
@@ -344,16 +321,30 @@ private fun TableControl(
                 role = Role.Checkbox
             },
         shape = MaterialTheme.shapes.large,
-        color = containerColor,
+        color = if (selected) androidx.compose.ui.graphics.Color.Transparent else containerColor,
         contentColor = contentColor,
         border = BorderStroke(
             width = if (selected) 2.dp else 1.dp,
-            color = if (selected) MaterialTheme.colorScheme.primary
+            color = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.72f)
             else MaterialTheme.colorScheme.outlineVariant,
         ),
         shadowElevation = elevation,
     ) {
-        Box(contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(
+                    if (selected) Modifier.background(
+                        Brush.verticalGradient(
+                            listOf(
+                                educationalColors.primaryGradientTop,
+                                educationalColors.primaryGradientBottom,
+                            ),
+                        ),
+                    ) else Modifier,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
             Text(
                 text = stringResource(R.string.table_number, table),
                 style = MaterialTheme.typography.titleLarge,
@@ -366,14 +357,14 @@ private fun TableControl(
                         .padding(5.dp)
                         .size(17.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
+                        .background(MaterialTheme.colorScheme.onPrimary),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = null,
                         modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.onPrimary,
+                        tint = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -395,20 +386,24 @@ private fun ActionPanel(
         else Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        val educationalColors = MaterialTheme.educationalColors
         SecondaryActionButton(R.string.screen_refresh, Icons.Default.Refresh, onRefreshClick)
         SecondaryActionButton(R.string.screen_repeat, Icons.AutoMirrored.Filled.ArrowForward, onRepeatClick)
-        Button(
+        PremiumGradientButton(
             onClick = onQuizClick,
             modifier = Modifier.fillMaxWidth().heightIn(min = 58.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary,
-            ),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 3.dp, pressedElevation = 1.dp),
+            gradientTop = educationalColors.primaryGradientTop,
+            gradientBottom = educationalColors.primaryGradientBottom,
+            highlight = educationalColors.glossyHighlight,
         ) {
-            Icon(Icons.Default.PlayArrow, contentDescription = null)
+            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = androidx.compose.ui.graphics.Color.White)
             Spacer(Modifier.size(10.dp))
-            Text(stringResource(R.string.screen_quiz), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.screen_quiz),
+                color = androidx.compose.ui.graphics.Color.White,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
         }
     }
 }
@@ -419,20 +414,21 @@ private fun SecondaryActionButton(
     icon: ImageVector,
     onClick: () -> Unit,
 ) {
-    ElevatedButton(
+    val educationalColors = MaterialTheme.educationalColors
+    PremiumGradientButton(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
-        colors = ButtonDefaults.elevatedButtonColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            contentColor = MaterialTheme.colorScheme.primary,
-        ),
-        elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 1.dp),
+        gradientTop = educationalColors.secondaryGradientTop,
+        gradientBottom = educationalColors.secondaryGradientBottom,
+        highlight = educationalColors.glossyHighlight,
     ) {
-        Icon(icon, contentDescription = null)
+        Icon(icon, contentDescription = null, tint = androidx.compose.ui.graphics.Color.White)
         Spacer(Modifier.size(10.dp))
         Text(
             text = stringResource(labelResource),
+            color = androidx.compose.ui.graphics.Color.White,
             style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
         )
     }

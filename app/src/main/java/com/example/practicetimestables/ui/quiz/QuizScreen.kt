@@ -1,7 +1,6 @@
 package com.example.practicetimestables.ui.quiz
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -19,8 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -57,9 +54,11 @@ import com.example.practicetimestables.domain.quiz.QuizPhase
 import com.example.practicetimestables.domain.quiz.QuizQuestion
 import com.example.practicetimestables.domain.quiz.QuizState
 import com.example.practicetimestables.ui.components.PracticeAppBar
+import com.example.practicetimestables.ui.components.PremiumGradientButton
 import com.example.practicetimestables.ui.layout.currentResponsiveLayoutInfo
 import com.example.practicetimestables.ui.navigation.NavigationAction
 import com.example.practicetimestables.ui.theme.AppMotion
+import com.example.practicetimestables.ui.theme.educationalColors
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -159,7 +158,6 @@ fun QuizScreen(
         },
     ) { padding ->
         BoxWithConstraints(Modifier.fillMaxSize().padding(padding)) {
-            QuizBackground()
             val layout = currentResponsiveLayoutInfo()
             val content = Modifier
                 .fillMaxSize()
@@ -209,7 +207,7 @@ fun QuizScreen(
             Icon(
                 imageVector = Icons.Default.Star,
                 contentDescription = null,
-                tint = androidx.compose.ui.graphics.Color(0xFFFFC107),
+                tint = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(start = 20.dp, top = 12.dp)
@@ -259,7 +257,7 @@ private fun QuizPromptArea(
         Text(
             text = timer,
             modifier = Modifier.align(Alignment.End).semantics { contentDescription = timerDescription },
-            color = if (state.timeExpired) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary,
+            color = if (state.timeExpired) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.ExtraBold,
         )
@@ -278,7 +276,7 @@ private fun QuizPromptArea(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .graphicsLayer { alpha = tryAgainAlpha },
-                color = MaterialTheme.colorScheme.secondary,
+                color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
@@ -352,17 +350,24 @@ private fun KeypadButton(
     onClick: () -> Unit,
     modifier: Modifier,
 ) {
-    Button(
+    val educationalColors = MaterialTheme.educationalColors
+    PremiumGradientButton(
         onClick = onClick,
         enabled = enabled,
+        preserveAppearanceWhenDisabled = true,
+        tactilePress = true,
         modifier = modifier.fillMaxSize().heightIn(min = 48.dp),
-        shape = MaterialTheme.shapes.large,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            contentColor = MaterialTheme.colorScheme.primary,
-        ),
+        gradientTop = educationalColors.primaryGradientTop,
+        gradientBottom = educationalColors.primaryGradientBottom,
+        highlight = educationalColors.glossyHighlight,
     ) {
-        Text(label, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, maxLines = 1)
+        Text(
+            label,
+            color = androidx.compose.ui.graphics.Color.White,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.ExtraBold,
+            maxLines = 1,
+        )
     }
 }
 
@@ -380,11 +385,3 @@ private fun questionText(question: QuizQuestion): String = when (question.format
 }
 
 internal fun formatQuizTime(seconds: Int): String = "%d:%02d".format(seconds / 60, seconds % 60)
-
-@Composable
-private fun QuizBackground() {
-    val color = MaterialTheme.colorScheme.tertiaryContainer
-    Canvas(Modifier.fillMaxSize().clearAndSetSemantics {}) {
-        drawCircle(color.copy(alpha = 0.2f), size.minDimension * 0.38f)
-    }
-}

@@ -5,6 +5,8 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -35,6 +37,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -51,6 +57,7 @@ import com.example.practicetimestables.domain.results.TableScore
 import com.example.practicetimestables.ui.components.PracticeAppBar
 import com.example.practicetimestables.ui.layout.currentResponsiveLayoutInfo
 import com.example.practicetimestables.ui.navigation.NavigationAction
+import com.example.practicetimestables.ui.theme.educationalColors
 
 @Composable
 fun ResultsScreen(
@@ -163,6 +170,8 @@ private fun AccuracyResult(score: AccuracyScore, modifier: Modifier, compact: Bo
         supportingText = stringResource(R.string.results_accuracy_percentage, score.percentage),
         modifier = modifier,
         compact = compact,
+        gradientTop = MaterialTheme.educationalColors.primaryGradientTop,
+        gradientBottom = MaterialTheme.educationalColors.primaryGradientBottom,
     )
 }
 
@@ -176,6 +185,8 @@ private fun SpeedResult(score: SpeedScore?, modifier: Modifier, compact: Boolean
         } ?: stringResource(R.string.results_speed_unavailable),
         modifier = modifier,
         compact = compact,
+        gradientTop = MaterialTheme.educationalColors.secondaryGradientTop,
+        gradientBottom = MaterialTheme.educationalColors.secondaryGradientBottom,
     )
 }
 
@@ -186,13 +197,17 @@ private fun ResultPanel(
     supportingText: String,
     modifier: Modifier,
     compact: Boolean,
+    gradientTop: Color,
+    gradientBottom: Color,
 ) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.primaryContainer,
-        tonalElevation = 2.dp,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)),
+    val educationalColors = MaterialTheme.educationalColors
+    val shape = MaterialTheme.shapes.extraLarge
+    Box(
+        modifier = modifier
+            .shadow(5.dp, shape, clip = false)
+            .clip(shape)
+            .background(Brush.verticalGradient(listOf(gradientTop, gradientBottom)))
+            .border(BorderStroke(1.dp, educationalColors.glossyHighlight), shape),
     ) {
         Column(
             Modifier.padding(horizontal = 14.dp, vertical = if (compact) 12.dp else 22.dp),
@@ -201,14 +216,15 @@ private fun ResultPanel(
         ) {
             Text(
                 label,
+                color = Color.White,
                 style = if (compact) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.ExtraBold,
             )
-            StarRating(stars = stars, starSize = if (compact) 30.dp else 42.dp)
+            StarRating(stars = stars, starSize = if (compact) 30.dp else 42.dp, richSurface = true)
             Text(
                 supportingText,
                 style = if (compact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                color = Color.White.copy(alpha = 0.9f),
                 fontWeight = FontWeight.Bold,
             )
         }
@@ -216,8 +232,14 @@ private fun ResultPanel(
 }
 
 @Composable
-fun StarRating(stars: Int, starSize: Dp, modifier: Modifier = Modifier) {
+fun StarRating(
+    stars: Int,
+    starSize: Dp,
+    modifier: Modifier = Modifier,
+    richSurface: Boolean = false,
+) {
     require(stars in 0..5)
+    val educationalColors = MaterialTheme.educationalColors
     val description = stringResource(R.string.results_star_rating_description, stars, 5)
     Row(
         modifier = modifier.clearAndSetSemantics { contentDescription = description },
@@ -229,8 +251,9 @@ fun StarRating(stars: Int, starSize: Dp, modifier: Modifier = Modifier) {
             Icon(
                 imageVector = if (awarded) Icons.Filled.Star else Icons.Outlined.Star,
                 contentDescription = null,
-                tint = if (awarded) MaterialTheme.colorScheme.tertiary
-                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                tint = if (awarded) educationalColors.goldStar
+                else if (richSurface) educationalColors.unearnedStarOnRichSurface
+                else MaterialTheme.colorScheme.primary.copy(alpha = 0.34f),
                 modifier = Modifier.size(starSize),
             )
         }
@@ -243,22 +266,28 @@ private fun TableBreakdown(
     modifier: Modifier = Modifier,
     compact: Boolean = false,
 ) {
+    val educationalColors = MaterialTheme.educationalColors
     Surface(
         modifier = modifier,
         shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = educationalColors.softPanel,
+        border = BorderStroke(1.dp, educationalColors.panelBorder),
+        tonalElevation = 1.dp,
     ) {
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(horizontal = if (compact) 10.dp else 16.dp, vertical = if (compact) 8.dp else 18.dp),
+                .padding(
+                    horizontal = if (compact) 20.dp else 24.dp,
+                    vertical = if (compact) 16.dp else 20.dp,
+                ),
         ) {
             Text(
                 stringResource(R.string.results_breakdown),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.padding(bottom = if (compact) 5.dp else 14.dp),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = if (compact) 10.dp else 16.dp),
             )
             BreakdownRow(
                 table = { Text(stringResource(R.string.results_table_heading), fontWeight = FontWeight.Bold) },
@@ -268,7 +297,7 @@ private fun TableBreakdown(
             )
             HorizontalDivider(
                 Modifier.padding(vertical = if (compact) 3.dp else 8.dp),
-                color = MaterialTheme.colorScheme.outlineVariant,
+                color = educationalColors.panelBorder,
             )
             LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                 itemsIndexed(scores, key = { _, score -> score.table }) { index, score ->
@@ -288,7 +317,7 @@ private fun TableBreakdown(
                     if (index != scores.lastIndex) {
                         HorizontalDivider(
                             Modifier.padding(vertical = if (compact) 2.dp else 8.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant,
+                            color = educationalColors.panelBorder,
                         )
                     }
                 }
@@ -303,6 +332,7 @@ private fun HeadingText(resource: Int) {
         stringResource(resource),
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
     )
 }
@@ -314,12 +344,13 @@ private fun BreakdownRow(
     speed: @Composable RowScope.() -> Unit,
     compact: Boolean,
 ) {
+    val educationalColors = MaterialTheme.educationalColors
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Row(Modifier.weight(0.65f), content = table)
         Row(Modifier.weight(1.35f), horizontalArrangement = Arrangement.Center, content = accuracy)
         VerticalDivider(
             modifier = Modifier.size(width = 1.dp, height = if (compact) 20.dp else 28.dp),
-            color = MaterialTheme.colorScheme.outlineVariant,
+            color = educationalColors.panelBorder,
         )
         Row(Modifier.weight(1.35f), horizontalArrangement = Arrangement.Center, content = speed)
     }

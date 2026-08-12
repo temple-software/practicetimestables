@@ -1,7 +1,6 @@
 package com.example.practicetimestables.ui.refresh
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -83,7 +82,6 @@ fun RefreshScreen(
         BoxWithConstraints(
             modifier = Modifier.fillMaxSize().padding(contentPadding),
         ) {
-            RefreshBackground()
             val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
             val columnCount = when {
                 fontScale > 1.5f -> 1
@@ -174,6 +172,7 @@ private fun EquationGrid(
     columnCount: Int,
     modifier: Modifier = Modifier,
 ) {
+    val responsiveLayout = currentResponsiveLayoutInfo()
     val columns = when (columnCount) {
         1 -> listOf(1..12)
         3 -> listOf(1..4, 5..8, 9..12)
@@ -193,7 +192,11 @@ private fun EquationGrid(
             columns.forEach { multipliers ->
                 Column(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
-                    verticalArrangement = Arrangement.SpaceEvenly,
+                    verticalArrangement = if (responsiveLayout.isPortrait) {
+                        Arrangement.spacedBy(4.dp, Alignment.CenterVertically)
+                    } else {
+                        Arrangement.SpaceEvenly
+                    },
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     multipliers.forEach { multiplier ->
@@ -312,17 +315,5 @@ private fun RefreshActionBar(hasNextTable: Boolean, onClick: () -> Unit) {
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
             }
         }
-    }
-}
-
-@Composable
-private fun RefreshBackground() {
-    val tone = MaterialTheme.colorScheme.tertiaryContainer
-    Canvas(modifier = Modifier.fillMaxSize().clearAndSetSemantics {}) {
-        drawCircle(
-            color = tone.copy(alpha = 0.16f),
-            radius = size.minDimension * 0.4f,
-            center = androidx.compose.ui.geometry.Offset(size.width, size.height * 0.18f),
-        )
     }
 }

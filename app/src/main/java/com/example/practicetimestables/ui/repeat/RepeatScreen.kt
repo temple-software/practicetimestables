@@ -6,7 +6,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -88,7 +87,6 @@ fun RepeatScreen(
         },
     ) { contentPadding ->
         BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(contentPadding)) {
-            RepeatBackground()
             val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
             val centreFontSize = when {
                 fontScale > 1.5f -> 30.sp
@@ -290,36 +288,23 @@ private fun RepeatEquation(
         ),
         label = "repeat answer opacity $table × $multiplier",
     ).value
+    val prompt = stringResource(R.string.repeat_equation_without_answer, multiplier, table)
     Row(
         modifier = modifier.then(accessibilityModifier),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RepeatElement(
-            text = stringResource(R.string.table_number, multiplier),
-            fontSize = fontSize,
-            weight = FontWeight.SemiBold,
-            modifier = Modifier.width(digitWidth * 2f).alignByBaseline(),
+        Text(
+            text = prompt,
+            modifier = Modifier.width(digitWidth * 8f).alignByBaseline(),
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontSize = fontSize,
+                lineHeight = fontSize * 1.1f,
+                fontFeatureSettings = "tnum",
+            ),
+            fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.End,
-        )
-        RepeatElement(
-            stringResource(R.string.multiplication_sign),
-            fontSize,
-            FontWeight.Medium,
-            Modifier.alignByBaseline(),
-        )
-        RepeatElement(
-            text = stringResource(R.string.table_number, table),
-            fontSize = fontSize,
-            weight = FontWeight.SemiBold,
-            modifier = Modifier.width(digitWidth * 2f).alignByBaseline(),
-            textAlign = TextAlign.Center,
-        )
-        RepeatElement(
-            stringResource(R.string.equals_sign),
-            fontSize,
-            FontWeight.Medium,
-            Modifier.alignByBaseline(),
+            maxLines = 1,
         )
         Text(
             text = stringResource(R.string.table_number, answer),
@@ -338,28 +323,6 @@ private fun RepeatEquation(
             maxLines = 1,
         )
     }
-}
-
-@Composable
-private fun RepeatElement(
-    text: String,
-    fontSize: TextUnit,
-    weight: FontWeight,
-    modifier: Modifier = Modifier,
-    textAlign: TextAlign? = null,
-) {
-    Text(
-        text = text,
-        modifier = modifier,
-        style = MaterialTheme.typography.titleLarge.copy(
-            fontSize = fontSize,
-            lineHeight = fontSize * 1.1f,
-            fontFeatureSettings = "tnum",
-        ),
-        fontWeight = weight,
-        textAlign = textAlign,
-        maxLines = 1,
-    )
 }
 
 @Composable
@@ -418,15 +381,3 @@ private const val CarouselViewportSlots = 3.4f
 private const val RepeatInstructionFontScale = 0.82f
 private const val AdjacentScaleReduction = 0.2f
 private const val CarouselFadeOutDistance = 1.55f
-
-@Composable
-private fun RepeatBackground() {
-    val tone = MaterialTheme.colorScheme.primaryContainer
-    Canvas(modifier = Modifier.fillMaxSize().clearAndSetSemantics {}) {
-        drawCircle(
-            color = tone.copy(alpha = 0.2f),
-            radius = size.minDimension * 0.34f,
-            center = androidx.compose.ui.geometry.Offset(size.width * 0.12f, size.height * 0.5f),
-        )
-    }
-}
