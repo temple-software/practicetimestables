@@ -9,6 +9,7 @@ Launcher-icon master artwork: `design/app-icon-master.png` (preserve as the sour
 Google Play store icon: `design/play-store-icon-512.png` (store-listing artwork; keep separate from adaptive and legacy launcher resources).
 Google Play feature graphic: `design/play-store-feature-1024x500.png`.
 Google Play English (UK) screenshots: raw captures in `design/store-screenshots/raw/en-GB/`; presentation assets in `design/store-screenshots/final/en-GB/`.
+Google Play French screenshots: raw captures in `design/store-screenshots/raw/fr-FR/`; presentation assets in `design/store-screenshots/final/fr-FR/`.
 
 Implement the following application incrementally in the existing Android Studio project.
 Do not attempt to implement the entire specification in a single change.
