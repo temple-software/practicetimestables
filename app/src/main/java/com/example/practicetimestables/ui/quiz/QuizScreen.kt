@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -72,7 +73,6 @@ fun QuizScreen(
     onLanguageSelected: (AppLanguage) -> Unit,
     onQuestionReady: () -> Unit,
     onDigitPressed: (Int) -> Unit,
-    onClearPressed: () -> Unit,
     onAbandonConfirmed: () -> Unit,
     onReadyForResults: () -> Unit,
 ) {
@@ -182,7 +182,6 @@ fun QuizScreen(
                     QuizKeypad(
                         enabled = uiState.isInteractive && inputPresentation.acceptsInput,
                         onDigitPressed = onDigitPressed,
-                        onClearPressed = onClearPressed,
                         modifier = Modifier.weight(0.95f).fillMaxHeight().widthIn(max = 430.dp),
                     )
                 }
@@ -203,7 +202,6 @@ fun QuizScreen(
                     QuizKeypad(
                         enabled = uiState.isInteractive && inputPresentation.acceptsInput,
                         onDigitPressed = onDigitPressed,
-                        onClearPressed = onClearPressed,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 280.dp, max = 390.dp),
                     )
                 }
@@ -329,7 +327,6 @@ private const val QuizAnswerRegionWeight = 0.9f
 private fun QuizKeypad(
     enabled: Boolean,
     onDigitPressed: (Int) -> Unit,
-    onClearPressed: () -> Unit,
     modifier: Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -341,10 +338,9 @@ private fun QuizKeypad(
             }
         }
         Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Spacer(Modifier.weight(1f).fillMaxSize())
             KeypadButton("0", enabled, { onDigitPressed(0) }, Modifier.weight(1f))
-            KeypadButton(
-                stringResource(R.string.quiz_clear), enabled, onClearPressed, Modifier.weight(2f), isClear = true,
-            )
+            Spacer(Modifier.weight(1f).fillMaxSize())
         }
     }
 }
@@ -355,17 +351,13 @@ private fun KeypadButton(
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier,
-    isClear: Boolean = false,
 ) {
     Button(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.fillMaxSize().heightIn(min = 48.dp),
         shape = MaterialTheme.shapes.large,
-        colors = if (isClear) ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        ) else ButtonDefaults.buttonColors(
+        colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             contentColor = MaterialTheme.colorScheme.primary,
         ),

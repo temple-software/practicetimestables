@@ -77,9 +77,9 @@ object QuizScoringEngine {
     fun accuracyStars(percentage: Double): Int {
         require(percentage in 0.0..100.0) { "Accuracy percentage must be between 0 and 100" }
         return when {
-            percentage == 100.0 -> 5
-            percentage >= 90.0 -> 4
-            percentage >= 75.0 -> 3
+            percentage >= 95.0 -> 5
+            percentage >= 85.0 -> 4
+            percentage >= 70.0 -> 3
             percentage >= 50.0 -> 2
             else -> 1
         }
@@ -88,10 +88,10 @@ object QuizScoringEngine {
     fun speedStars(averageResponseTimeMillis: Double): Int {
         require(averageResponseTimeMillis >= 0.0) { "Average response time cannot be negative" }
         return when {
-            averageResponseTimeMillis <= 1_000.0 -> 5
-            averageResponseTimeMillis <= 2_500.0 -> 4
-            averageResponseTimeMillis <= 4_000.0 -> 3
-            averageResponseTimeMillis <= 5_000.0 -> 2
+            averageResponseTimeMillis < 2_000.0 -> 5
+            averageResponseTimeMillis < 4_000.0 -> 4
+            averageResponseTimeMillis < 6_000.0 -> 3
+            averageResponseTimeMillis < 8_000.0 -> 2
             else -> 1
         }
     }

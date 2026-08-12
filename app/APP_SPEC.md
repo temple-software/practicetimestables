@@ -116,21 +116,21 @@ Table Breakdown (Displayed if more than 1 table was selected):
 A 3-column table: Column 1 = Table Name (e.g., "2x"), Column 2 = Accuracy (5 small stars), Column 3 = Speed (5 small stars).
 Star Scoring Mathematics:
 Accuracy Stars (only whole stars):
-100% accuracy = 5 stars
->= 90% to < 100% accuracy = 4 stars
->= 75% to < 90% accuracy = 3 stars
->= 50% to < 75% accuracy = 2 stars
+>= 95% accuracy = 5 stars
+>= 85% to < 95% accuracy = 4 stars
+>= 70% to < 85% accuracy = 3 stars
+>= 50% to < 70% accuracy = 2 stars
 < 50% accuracy = 1 star
 
 Speed Stars (only whole stars):
 If no valid response times exist for a scoring group, do not calculate a speed rating for that group.
 Trim floor(numberOfResponses × 0.10) of the slowest responses. If fewer than 10 responses are available, trim zero responses.
 Calculate average time of remaining responses AvgTime.
-AvgTime <= 1.0 seconds = 5 stars
-AvgTime > 1.0 and <= 2.5 seconds = 4 stars
-AvgTime > 2.5 and <= 4.0 seconds = 3 stars
-AvgTime > 4.0 and <= 5.0 seconds = 2 stars
-AvgTime > 5.0 seconds = 1 star
+AvgTime < 2.0 seconds = 5 stars
+AvgTime >= 2.0 and < 4.0 seconds = 4 stars
+AvgTime >= 4.0 and < 6.0 seconds = 3 stars
+AvgTime >= 6.0 and < 8.0 seconds = 2 stars
+AvgTime >= 8.0 seconds = 1 star
 Apply the 10% trimming independently when calculating: overall Speed, and each individual table's Speed
 
 

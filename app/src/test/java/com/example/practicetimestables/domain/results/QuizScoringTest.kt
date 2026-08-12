@@ -24,13 +24,14 @@ class QuizScoringTest {
     fun accuracyStarBoundariesAreExact() {
         mapOf(
             100.0 to 5,
-            99.9 to 4,
-            90.0 to 4,
-            89.999 to 3,
-            75.0 to 3,
-            74.999 to 2,
+            95.0 to 5,
+            94.9 to 4,
+            85.0 to 4,
+            84.9 to 3,
+            70.0 to 3,
+            69.9 to 2,
             50.0 to 2,
-            49.999 to 1,
+            49.9 to 1,
         ).forEach { (percentage, stars) ->
             assertEquals("percentage=$percentage", stars, QuizScoringEngine.accuracyStars(percentage))
         }
@@ -45,18 +46,15 @@ class QuizScoringTest {
     @Test
     fun speedStarBoundariesAreExact() {
         mapOf(
-            999.999 to 5,
-            1_000.0 to 5,
-            1_000.001 to 4,
-            2_499.999 to 4,
-            2_500.0 to 4,
-            2_500.001 to 3,
-            3_999.999 to 3,
+            1_999.0 to 5,
+            2_000.0 to 4,
+            3_999.0 to 4,
             4_000.0 to 3,
-            4_000.001 to 2,
-            4_999.999 to 2,
-            5_000.0 to 2,
-            5_000.001 to 1,
+            5_999.0 to 3,
+            6_000.0 to 2,
+            7_999.0 to 2,
+            8_000.0 to 1,
+            10_000.0 to 1,
         ).forEach { (millis, stars) ->
             assertEquals("millis=$millis", stars, QuizScoringEngine.speedStars(millis))
         }

@@ -36,4 +36,13 @@
     <string name="quiz_question_first_missing" translatable="false">\? × %1$d = %2$d</string>
     <string name="quiz_question_second_missing" translatable="false">%1$d × ? = %2$d</string>
     <string name="quiz_answer_placeholder" translatable="false">_</string>
+    <string name="results_accuracy">Accuracy</string>
+    <string name="results_speed">Speed</string>
+    <string name="results_breakdown">Your times tables</string>
+    <string name="results_table_heading">Table</string>
+    <string name="results_table_value" translatable="false">%1$d×</string>
+    <string name="results_accuracy_percentage">%1$.0f%%</string>
+    <string name="results_average_seconds">%1$.1f s</string>
+    <string name="results_speed_unavailable">Not available</string>
+    <string name="results_star_rating_description">%1$d out of %2$d stars</string>
 </resources>

@@ -25,6 +25,8 @@ import com.example.practicetimestables.ui.quiz.QuizScreen
 import com.example.practicetimestables.ui.quiz.QuizViewModel
 import com.example.practicetimestables.ui.repeat.RepeatScreen
 import com.example.practicetimestables.ui.repeat.RepeatViewModel
+import com.example.practicetimestables.ui.results.ResultsScreen
+import com.example.practicetimestables.ui.results.ResultsViewModel
 
 @Composable
 fun AppNavHost(
@@ -34,6 +36,7 @@ fun AppNavHost(
     onLanguageSelected: (AppLanguage) -> Unit,
     onTableToggled: (Int) -> Unit,
 ) {
+    val resultsViewModel: ResultsViewModel = viewModel()
     NavHost(
         navController = navController,
         startDestination = AppDestination.startDestination.route,
@@ -94,23 +97,44 @@ fun AppNavHost(
                 onLanguageSelected = onLanguageSelected,
                 onQuestionReady = quizViewModel::questionBecameInteractive,
                 onDigitPressed = quizViewModel::pressDigit,
-                onClearPressed = quizViewModel::clear,
                 onAbandonConfirmed = {
                     navController.popBackStack(AppDestination.HOME.route, inclusive = false)
                 },
                 onReadyForResults = {
+                    resultsViewModel.acceptCompletedQuiz(quizUiState.completedResponses)
                     navController.navigate(AppDestination.RESULTS.route) {
                         popUpTo(AppDestination.QUIZ.route) { inclusive = true }
                     }
                 },
             )
         }
+        composable(AppDestination.RESULTS.route) {
+            val resultsUiState by resultsViewModel.uiState.collectAsStateWithLifecycle()
+            val state = resultsUiState
+            if (state != null) {
+                val playFanfare = androidx.compose.runtime.remember { resultsViewModel.claimFanfare() }
+                ResultsScreen(
+                    language = language,
+                    state = state,
+                    playFanfare = playFanfare,
+                    onLanguageSelected = onLanguageSelected,
+                    onReturnHome = {
+                        navController.navigate(AppDestination.HOME.route) {
+                            popUpTo(AppDestination.HOME.route) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                        resultsViewModel.clearCompletedQuiz()
+                    },
+                )
+            }
+        }
         AppDestination.all
             .filterNot {
                 it == AppDestination.HOME ||
                     it == AppDestination.REFRESH ||
                     it == AppDestination.REPEAT ||
-                    it == AppDestination.QUIZ
+                    it == AppDestination.QUIZ ||
+                    it == AppDestination.RESULTS
             }
             .forEach { destination ->
             composable(destination.route) {

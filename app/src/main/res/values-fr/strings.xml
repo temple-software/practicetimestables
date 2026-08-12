@@ -27,4 +27,12 @@
     <string name="quiz_abandon_confirm">Quitter le quiz</string>
     <string name="quiz_abandon_stay">Continuer à jouer</string>
     <string name="quiz_try_again">Réessaie</string>
+    <string name="results_accuracy">Précision</string>
+    <string name="results_speed">Rapidité</string>
+    <string name="results_breakdown">Tes tables de multiplication</string>
+    <string name="results_table_heading">Table</string>
+    <string name="results_accuracy_percentage">%1$.0f%%</string>
+    <string name="results_average_seconds">%1$.1f s</string>
+    <string name="results_speed_unavailable">Non disponible</string>
+    <string name="results_star_rating_description">%1$d étoiles sur %2$d</string>
 </resources>
