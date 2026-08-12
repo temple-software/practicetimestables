@@ -31,6 +31,7 @@
     <string name="quiz_abandon_message">Your progress in this quiz will be lost.</string>
     <string name="quiz_abandon_confirm">Leave quiz</string>
     <string name="quiz_abandon_stay">Keep playing</string>
+    <string name="quiz_try_again">Try Again</string>
     <string name="quiz_question_result_missing" translatable="false">%1$d × %2$d = ?</string>
     <string name="quiz_question_first_missing" translatable="false">\? × %1$d = %2$d</string>
     <string name="quiz_question_second_missing" translatable="false">%1$d × ? = %2$d</string>

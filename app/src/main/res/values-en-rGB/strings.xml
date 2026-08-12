@@ -26,4 +26,5 @@
     <string name="quiz_abandon_message">Your progress in this quiz will be lost.</string>
     <string name="quiz_abandon_confirm">Leave quiz</string>
     <string name="quiz_abandon_stay">Keep playing</string>
+    <string name="quiz_try_again">Try Again</string>
 </resources>

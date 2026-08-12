@@ -6,6 +6,8 @@ import com.example.practicetimestables.domain.quiz.QuizPhase
 import com.example.practicetimestables.domain.quiz.QuizTestRandomizer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -45,7 +47,7 @@ class QuizViewModelTest {
     }
 
     @Test
-    fun correctAnswerAwaitsExplicitAdvanceThenCreatesNewQuestion() {
+    fun correctAnswerRendersCompletedStateBeforeExplicitAdvance() {
         val viewModel = createViewModel(setOf(2))
         viewModel.questionBecameInteractive()
         val original = viewModel.uiState.value.currentQuestion
@@ -53,10 +55,65 @@ class QuizViewModelTest {
 
         assertEquals(QuizPhase.AWAITING_ADVANCE, viewModel.uiState.value.phase)
         assertEquals(original, viewModel.uiState.value.currentQuestion)
+        assertEquals(original.expectedAnswer.toString(), completedAnswerText(viewModel))
+        assertFalse(viewModel.uiState.value.isInteractive)
+        assertTrue(viewModel.feedback.value is QuizFeedback.Correct)
+
         viewModel.advanceAfterCorrectTransition()
         assertEquals(QuizPhase.ANSWERING, viewModel.uiState.value.phase)
         assertFalse(viewModel.uiState.value.isInteractive)
         assertTrue(original != viewModel.uiState.value.currentQuestion)
+    }
+
+    @Test
+    fun repeatedIncorrectDigitsEmitDistinctLatestFeedbackWithoutBlockingInput() {
+        val viewModel = createViewModel(setOf(2), reverse = true)
+        viewModel.questionBecameInteractive()
+        val expectedFirst = viewModel.uiState.value.currentQuestion.expectedAnswer.toString().first().digitToInt()
+        val wrong = (expectedFirst + 1) % 10
+
+        viewModel.pressDigit(wrong)
+        val firstFeedback = viewModel.feedback.value as QuizFeedback.Incorrect
+        viewModel.pressDigit(wrong)
+        val secondFeedback = viewModel.feedback.value as QuizFeedback.Incorrect
+
+        assertNotEquals(firstFeedback.id, secondFeedback.id)
+        assertEquals("", viewModel.uiState.value.enteredDigits)
+        assertTrue(viewModel.uiState.value.isInteractive)
+    }
+
+    @Test
+    fun clearDoesNotEmitFeedbackOrChangeDomainProgression() {
+        val viewModel = createViewModel(setOf(2), reverse = true)
+        viewModel.questionBecameInteractive()
+        val expected = viewModel.uiState.value.currentQuestion.expectedAnswer.toString()
+        viewModel.pressDigit(expected.first().digitToInt())
+        val feedbackBeforeClear = viewModel.feedback.value
+
+        viewModel.clear()
+
+        assertSame(feedbackBeforeClear, viewModel.feedback.value)
+        assertEquals("", viewModel.uiState.value.enteredDigits)
+        assertFalse(viewModel.uiState.value.hadMistake)
+        assertTrue(viewModel.uiState.value.isInteractive)
+    }
+
+    @Test
+    fun correctInputAfterErrorImmediatelySupersedesIncorrectFeedback() {
+        val viewModel = createViewModel(setOf(2), reverse = true)
+        viewModel.questionBecameInteractive()
+        val expected = viewModel.uiState.value.currentQuestion.expectedAnswer.toString()
+        viewModel.pressDigit((expected.first().digitToInt() + 1) % 10)
+        val incorrectId = (viewModel.feedback.value as QuizFeedback.Incorrect).id
+
+        enterCorrectAnswer(viewModel)
+
+        val correct = viewModel.feedback.value as QuizFeedback.Correct
+        assertTrue(correct.id > incorrectId)
+        assertEquals(QuizPhase.AWAITING_ADVANCE, viewModel.uiState.value.phase)
+        viewModel.advanceAfterCorrectTransition()
+        assertEquals(QuizPhase.ANSWERING, viewModel.uiState.value.phase)
+        assertFalse(viewModel.uiState.value.isInteractive)
     }
 
     @Test
@@ -101,6 +158,21 @@ class QuizViewModelTest {
         assertEquals("0:00", formatQuizTime(0))
     }
 
+    @Test
+    fun confirmationDelayIsShortAndDoesNotAlterRecordedResponseTime() {
+        val viewModel = createViewModel(setOf(2), reverse = true)
+        viewModel.questionBecameInteractive()
+        val startedAt = checkNotNull(viewModel.uiState.value.interactiveStartedAtMillis)
+        clock.now = startedAt + 345
+
+        val answer = viewModel.uiState.value.currentQuestion.expectedAnswer.toString()
+        answer.forEach { viewModel.pressDigit(it.digitToInt()) }
+
+        assertEquals(100, com.example.practicetimestables.ui.theme.AppMotion.QuizAnswerConfirmationMillis)
+        assertEquals(345, viewModel.uiState.value.completedResponses.last().responseTimeMillis)
+        assertEquals(QuizPhase.AWAITING_ADVANCE, viewModel.uiState.value.phase)
+    }
+
     private val clock = MutableQuizClock(10_000)
 
     private fun createViewModel(
@@ -121,6 +193,13 @@ class QuizViewModelTest {
             viewModel.pressDigit(it.digitToInt())
         }
     }
+
+    private fun completedAnswerText(viewModel: QuizViewModel): String =
+        if (viewModel.uiState.value.phase == QuizPhase.ANSWERING) {
+            viewModel.uiState.value.enteredDigits
+        } else {
+            viewModel.uiState.value.currentQuestion.expectedAnswer.toString()
+        }
 
     private class MutableQuizClock(var now: Long) : QuizClock {
         override fun nowMillis(): Long = now

@@ -14,9 +14,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -29,8 +33,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -48,11 +57,16 @@ import com.example.practicetimestables.domain.quiz.QuizState
 import com.example.practicetimestables.ui.components.PracticeAppBar
 import com.example.practicetimestables.ui.layout.currentResponsiveLayoutInfo
 import com.example.practicetimestables.ui.navigation.NavigationAction
+import com.example.practicetimestables.ui.theme.AppMotion
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun QuizScreen(
     language: AppLanguage,
     uiState: QuizState,
+    feedback: QuizFeedback,
     onLanguageSelected: (AppLanguage) -> Unit,
     onQuestionReady: () -> Unit,
     onDigitPressed: (Int) -> Unit,
@@ -61,6 +75,57 @@ fun QuizScreen(
     onReadyForResults: () -> Unit,
 ) {
     var showAbandonDialog by remember { mutableStateOf(false) }
+    val shakeOffset = remember { Animatable(0f) }
+    val tryAgainAlpha = remember { Animatable(0f) }
+    val starAlpha = remember { Animatable(0f) }
+    val starRotation = remember { Animatable(0f) }
+    LaunchedEffect(feedback.id) {
+        shakeOffset.stop()
+        tryAgainAlpha.stop()
+        starAlpha.stop()
+        starRotation.stop()
+        shakeOffset.snapTo(0f)
+        tryAgainAlpha.snapTo(0f)
+        starAlpha.snapTo(0f)
+        starRotation.snapTo(0f)
+        when (feedback) {
+            QuizFeedback.None -> Unit
+            is QuizFeedback.Incorrect -> coroutineScope {
+                launch {
+                    shakeOffset.animateTo(
+                        targetValue = 0f,
+                        animationSpec = keyframes {
+                            durationMillis = AppMotion.QuizShakeDurationMillis
+                            -AppMotion.QuizShakeMagnitudeDp.toFloat() at 55
+                            AppMotion.QuizShakeMagnitudeDp * 0.8f at 120
+                            -AppMotion.QuizShakeMagnitudeDp * 0.6f at 190
+                            AppMotion.QuizShakeMagnitudeDp * 0.4f at 260
+                            -AppMotion.QuizShakeMagnitudeDp * 0.2f at 330
+                            0f at AppMotion.QuizShakeDurationMillis
+                        },
+                    )
+                }
+                launch {
+                    tryAgainAlpha.animateTo(1f, tween(120))
+                    delay((AppMotion.QuizTryAgainDurationMillis - 370).toLong())
+                    tryAgainAlpha.animateTo(0f, tween(250))
+                }
+            }
+            is QuizFeedback.Correct -> coroutineScope {
+                launch {
+                    starRotation.animateTo(
+                        360f,
+                        tween(AppMotion.QuizCorrectFeedbackDurationMillis, easing = FastOutSlowInEasing),
+                    )
+                }
+                launch {
+                    starAlpha.animateTo(1f, tween(140))
+                    delay((AppMotion.QuizCorrectFeedbackDurationMillis - 390).toLong())
+                    starAlpha.animateTo(0f, tween(250))
+                }
+            }
+        }
+    }
     BackHandler { showAbandonDialog = true }
     LaunchedEffect(uiState.currentQuestion, uiState.phase) {
         if (uiState.phase == QuizPhase.ANSWERING && !uiState.isInteractive) {
@@ -96,7 +161,14 @@ fun QuizScreen(
                     horizontalArrangement = Arrangement.spacedBy(28.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    QuizPromptArea(uiState, Modifier.weight(1.05f).fillMaxHeight())
+                    QuizPromptArea(
+                        uiState,
+                        tryAgainAlpha.value,
+                        Modifier
+                            .weight(1.05f)
+                            .fillMaxHeight()
+                            .graphicsLayer { translationX = shakeOffset.value.dp.toPx() },
+                    )
                     QuizKeypad(
                         enabled = uiState.isInteractive,
                         onDigitPressed = onDigitPressed,
@@ -109,7 +181,14 @@ fun QuizScreen(
                     modifier = content.widthIn(max = 560.dp).align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    QuizPromptArea(uiState, Modifier.weight(1f).fillMaxWidth())
+                    QuizPromptArea(
+                        uiState,
+                        tryAgainAlpha.value,
+                        Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .graphicsLayer { translationX = shakeOffset.value.dp.toPx() },
+                    )
                     QuizKeypad(
                         enabled = uiState.isInteractive,
                         onDigitPressed = onDigitPressed,
@@ -118,6 +197,22 @@ fun QuizScreen(
                     )
                 }
             }
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = null,
+                tint = androidx.compose.ui.graphics.Color(0xFFFFC107),
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 20.dp, top = 12.dp)
+                    .size(if (layout.isExpandedWidth) 76.dp else 60.dp)
+                    .graphicsLayer {
+                        alpha = starAlpha.value
+                        rotationZ = starRotation.value
+                        scaleX = 0.85f + starAlpha.value * 0.15f
+                        scaleY = scaleX
+                    }
+                    .clearAndSetSemantics {},
+            )
         }
     }
 
@@ -139,7 +234,7 @@ fun QuizScreen(
 }
 
 @Composable
-private fun QuizPromptArea(state: QuizState, modifier: Modifier) {
+private fun QuizPromptArea(state: QuizState, tryAgainAlpha: Float, modifier: Modifier) {
     val layout = currentResponsiveLayoutInfo()
     val timer = formatQuizTime(state.remainingSeconds)
     val timerDescription = stringResource(R.string.quiz_timer_description, timer)
@@ -163,6 +258,15 @@ private fun QuizPromptArea(state: QuizState, modifier: Modifier) {
                 fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
+            )
+            Text(
+                text = stringResource(R.string.quiz_try_again),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .graphicsLayer { alpha = tryAgainAlpha },
+                color = MaterialTheme.colorScheme.secondary,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
             )
         }
         Box(

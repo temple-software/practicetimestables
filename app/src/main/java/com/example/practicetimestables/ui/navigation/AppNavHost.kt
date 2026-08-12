@@ -84,9 +84,11 @@ fun AppNavHost(
         composable(AppDestination.QUIZ.route) {
             val quizViewModel: QuizViewModel = viewModel(factory = QuizViewModel.factory(selectedTables))
             val quizUiState by quizViewModel.uiState.collectAsStateWithLifecycle()
+            val quizFeedback by quizViewModel.feedback.collectAsStateWithLifecycle()
             QuizScreen(
                 language = language,
                 uiState = quizUiState,
+                feedback = quizFeedback,
                 onLanguageSelected = onLanguageSelected,
                 onQuestionReady = quizViewModel::questionBecameInteractive,
                 onDigitPressed = quizViewModel::pressDigit,

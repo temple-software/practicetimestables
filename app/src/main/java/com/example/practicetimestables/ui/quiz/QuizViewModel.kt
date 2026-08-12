@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.practicetimestables.domain.quiz.QuizAction
 import com.example.practicetimestables.domain.quiz.QuizEngine
+import com.example.practicetimestables.domain.quiz.QuizEvent
 import com.example.practicetimestables.domain.quiz.QuizPhase
 import com.example.practicetimestables.domain.quiz.QuizState
 import com.example.practicetimestables.ui.theme.AppMotion
@@ -33,8 +34,11 @@ class QuizViewModel(
         QuizSavedState.restore(savedStateHandle) ?: engine.newSession(selectedTables),
     )
     val uiState: StateFlow<QuizState> = _uiState.asStateFlow()
+    private val _feedback = MutableStateFlow<QuizFeedback>(QuizFeedback.None)
+    val feedback: StateFlow<QuizFeedback> = _feedback.asStateFlow()
     private var timerJob: Job? = null
     private var advanceJob: Job? = null
+    private var feedbackId = 0L
 
     init {
         QuizSavedState.save(savedStateHandle, _uiState.value)
@@ -52,9 +56,19 @@ class QuizViewModel(
     }
 
     fun pressDigit(digit: Int) {
-        val next = engine.dispatch(_uiState.value, QuizAction.DigitPressed(digit, clock.nowMillis())).state
-        update(next)
-        if (next.phase == QuizPhase.AWAITING_ADVANCE) scheduleAdvance()
+        val transition = engine.dispatch(
+            _uiState.value,
+            QuizAction.DigitPressed(digit, clock.nowMillis()),
+        )
+        update(transition.state)
+        when (transition.event) {
+            QuizEvent.IncorrectDigit -> emitFeedback { QuizFeedback.Incorrect(it) }
+            is QuizEvent.QuestionCompleted -> emitFeedback { QuizFeedback.Correct(it) }
+            else -> Unit
+        }
+        if (transition.state.phase == QuizPhase.AWAITING_ADVANCE) {
+            scheduleAdvance()
+        }
     }
 
     fun clear() = update(engine.dispatch(_uiState.value, QuizAction.Clear).state)
@@ -83,10 +97,9 @@ class QuizViewModel(
     }
 
     private fun scheduleAdvance() {
-        if (!automaticJobsEnabled) return
-        advanceJob?.cancel()
+        if (!automaticJobsEnabled || advanceJob?.isActive == true) return
         advanceJob = viewModelScope.launch {
-            delay(AppMotion.DefaultDurationMillis.toLong())
+            delay(AppMotion.QuizAnswerConfirmationMillis.toLong())
             advanceAfterCorrectTransition()
         }
     }
@@ -96,9 +109,22 @@ class QuizViewModel(
         QuizSavedState.save(savedStateHandle, state)
     }
 
+    private inline fun emitFeedback(create: (Long) -> QuizFeedback) {
+        feedbackId += 1
+        _feedback.value = create(feedbackId)
+    }
+
     companion object {
         fun factory(selectedTables: Set<Int>) = viewModelFactory {
             initializer { QuizViewModel(createSavedStateHandle(), selectedTables) }
         }
     }
+}
+
+sealed interface QuizFeedback {
+    val id: Long
+
+    data object None : QuizFeedback { override val id: Long = 0 }
+    data class Incorrect(override val id: Long) : QuizFeedback
+    data class Correct(override val id: Long) : QuizFeedback
 }
