@@ -27,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +68,7 @@ fun QuizScreen(
     language: AppLanguage,
     uiState: QuizState,
     feedback: QuizFeedback,
+    inputPresentation: QuizInputPresentation,
     onLanguageSelected: (AppLanguage) -> Unit,
     onQuestionReady: () -> Unit,
     onDigitPressed: (Int) -> Unit,
@@ -75,6 +77,13 @@ fun QuizScreen(
     onReadyForResults: () -> Unit,
 ) {
     var showAbandonDialog by remember { mutableStateOf(false) }
+    val audioSession = remember {
+        QuizAudioSession(SynthesizedQuizAudioController(), feedback.id)
+    }
+    LaunchedEffect(feedback.id) { audioSession.onFeedback(feedback) }
+    DisposableEffect(audioSession) {
+        onDispose { audioSession.close() }
+    }
     val shakeOffset = remember { Animatable(0f) }
     val tryAgainAlpha = remember { Animatable(0f) }
     val starAlpha = remember { Animatable(0f) }
@@ -163,6 +172,7 @@ fun QuizScreen(
                 ) {
                     QuizPromptArea(
                         uiState,
+                        inputPresentation.attemptedDigits,
                         tryAgainAlpha.value,
                         Modifier
                             .weight(1.05f)
@@ -170,7 +180,7 @@ fun QuizScreen(
                             .graphicsLayer { translationX = shakeOffset.value.dp.toPx() },
                     )
                     QuizKeypad(
-                        enabled = uiState.isInteractive,
+                        enabled = uiState.isInteractive && inputPresentation.acceptsInput,
                         onDigitPressed = onDigitPressed,
                         onClearPressed = onClearPressed,
                         modifier = Modifier.weight(0.95f).fillMaxHeight().widthIn(max = 430.dp),
@@ -183,6 +193,7 @@ fun QuizScreen(
                 ) {
                     QuizPromptArea(
                         uiState,
+                        inputPresentation.attemptedDigits,
                         tryAgainAlpha.value,
                         Modifier
                             .weight(1f)
@@ -190,7 +201,7 @@ fun QuizScreen(
                             .graphicsLayer { translationX = shakeOffset.value.dp.toPx() },
                     )
                     QuizKeypad(
-                        enabled = uiState.isInteractive,
+                        enabled = uiState.isInteractive && inputPresentation.acceptsInput,
                         onDigitPressed = onDigitPressed,
                         onClearPressed = onClearPressed,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 280.dp, max = 390.dp),
@@ -234,7 +245,12 @@ fun QuizScreen(
 }
 
 @Composable
-private fun QuizPromptArea(state: QuizState, tryAgainAlpha: Float, modifier: Modifier) {
+private fun QuizPromptArea(
+    state: QuizState,
+    attemptedDigits: String?,
+    tryAgainAlpha: Float,
+    modifier: Modifier,
+) {
     val layout = currentResponsiveLayoutInfo()
     val timer = formatQuizTime(state.remainingSeconds)
     val timerDescription = stringResource(R.string.quiz_timer_description, timer)
@@ -273,15 +289,15 @@ private fun QuizPromptArea(state: QuizState, tryAgainAlpha: Float, modifier: Mod
             modifier = Modifier.weight(QuizAnswerRegionWeight).fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
-            AnswerSlots(state)
+            AnswerSlots(state, attemptedDigits)
         }
     }
 }
 
 @Composable
-private fun AnswerSlots(state: QuizState) {
+private fun AnswerSlots(state: QuizState, attemptedDigits: String?) {
     val expected = state.currentQuestion.expectedAnswer.toString()
-    val visible = if (state.phase == QuizPhase.ANSWERING) state.enteredDigits else expected
+    val visible = attemptedDigits ?: if (state.phase == QuizPhase.ANSWERING) state.enteredDigits else expected
     val description = stringResource(R.string.quiz_answer_description, visible)
     Row(
         modifier = Modifier.semantics { contentDescription = description },

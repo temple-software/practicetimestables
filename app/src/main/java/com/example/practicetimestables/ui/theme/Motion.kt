@@ -11,4 +11,5 @@ object AppMotion {
     const val QuizCorrectFeedbackDurationMillis = 850
     const val QuizShakeMagnitudeDp = 10
     const val QuizAnswerConfirmationMillis = 100
+    const val QuizIncorrectDigitConfirmationMillis = 100
 }

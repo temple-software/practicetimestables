@@ -36,8 +36,11 @@ class QuizViewModel(
     val uiState: StateFlow<QuizState> = _uiState.asStateFlow()
     private val _feedback = MutableStateFlow<QuizFeedback>(QuizFeedback.None)
     val feedback: StateFlow<QuizFeedback> = _feedback.asStateFlow()
+    private val _inputPresentation = MutableStateFlow(QuizInputPresentation())
+    val inputPresentation: StateFlow<QuizInputPresentation> = _inputPresentation.asStateFlow()
     private var timerJob: Job? = null
     private var advanceJob: Job? = null
+    private var incorrectConfirmationJob: Job? = null
     private var feedbackId = 0L
 
     init {
@@ -56,13 +59,19 @@ class QuizViewModel(
     }
 
     fun pressDigit(digit: Int) {
+        if (_inputPresentation.value.attemptedDigits != null) return
+        val attemptedDigits = _uiState.value.enteredDigits + digit
         val transition = engine.dispatch(
             _uiState.value,
             QuizAction.DigitPressed(digit, clock.nowMillis()),
         )
         update(transition.state)
         when (transition.event) {
-            QuizEvent.IncorrectDigit -> emitFeedback { QuizFeedback.Incorrect(it) }
+            QuizEvent.IncorrectDigit -> {
+                _inputPresentation.value = QuizInputPresentation(attemptedDigits)
+                emitFeedback { QuizFeedback.Incorrect(it) }
+                scheduleIncorrectDigitClear()
+            }
             is QuizEvent.QuestionCompleted -> emitFeedback { QuizFeedback.Correct(it) }
             else -> Unit
         }
@@ -71,7 +80,10 @@ class QuizViewModel(
         }
     }
 
-    fun clear() = update(engine.dispatch(_uiState.value, QuizAction.Clear).state)
+    fun clear() {
+        if (_inputPresentation.value.attemptedDigits != null) return
+        update(engine.dispatch(_uiState.value, QuizAction.Clear).state)
+    }
 
     fun advanceAfterCorrectTransition() {
         if (_uiState.value.phase != QuizPhase.AWAITING_ADVANCE) return
@@ -104,6 +116,19 @@ class QuizViewModel(
         }
     }
 
+    private fun scheduleIncorrectDigitClear() {
+        incorrectConfirmationJob?.cancel()
+        if (!automaticJobsEnabled) return
+        incorrectConfirmationJob = viewModelScope.launch {
+            delay(AppMotion.QuizIncorrectDigitConfirmationMillis.toLong())
+            finishIncorrectDigitConfirmation()
+        }
+    }
+
+    internal fun finishIncorrectDigitConfirmation() {
+        _inputPresentation.value = QuizInputPresentation()
+    }
+
     private fun update(state: QuizState) {
         _uiState.value = state
         QuizSavedState.save(savedStateHandle, state)
@@ -119,6 +144,12 @@ class QuizViewModel(
             initializer { QuizViewModel(createSavedStateHandle(), selectedTables) }
         }
     }
+}
+
+data class QuizInputPresentation(
+    val attemptedDigits: String? = null,
+) {
+    val acceptsInput: Boolean get() = attemptedDigits == null
 }
 
 sealed interface QuizFeedback {

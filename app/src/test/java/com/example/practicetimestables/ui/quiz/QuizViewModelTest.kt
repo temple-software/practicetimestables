@@ -66,7 +66,7 @@ class QuizViewModelTest {
     }
 
     @Test
-    fun repeatedIncorrectDigitsEmitDistinctLatestFeedbackWithoutBlockingInput() {
+    fun repeatedIncorrectDigitsEmitDistinctFeedbackAfterEachBriefInputHold() {
         val viewModel = createViewModel(setOf(2), reverse = true)
         viewModel.questionBecameInteractive()
         val expectedFirst = viewModel.uiState.value.currentQuestion.expectedAnswer.toString().first().digitToInt()
@@ -74,12 +74,61 @@ class QuizViewModelTest {
 
         viewModel.pressDigit(wrong)
         val firstFeedback = viewModel.feedback.value as QuizFeedback.Incorrect
+        assertEquals(wrong.toString(), viewModel.inputPresentation.value.attemptedDigits)
+        assertFalse(viewModel.inputPresentation.value.acceptsInput)
+        viewModel.finishIncorrectDigitConfirmation()
         viewModel.pressDigit(wrong)
         val secondFeedback = viewModel.feedback.value as QuizFeedback.Incorrect
 
         assertNotEquals(firstFeedback.id, secondFeedback.id)
         assertEquals("", viewModel.uiState.value.enteredDigits)
         assertTrue(viewModel.uiState.value.isInteractive)
+    }
+
+    @Test
+    fun incorrectDigitIsPresentedBrieflyThenRetryIsEnabledWithoutResettingTiming() {
+        val viewModel = createViewModel(setOf(2), reverse = true)
+        viewModel.questionBecameInteractive()
+        val startedAt = checkNotNull(viewModel.uiState.value.interactiveStartedAtMillis)
+        val expected = viewModel.uiState.value.currentQuestion.expectedAnswer.toString()
+        viewModel.pressDigit(expected.first().digitToInt())
+        val wrong = ((expected.getOrNull(1) ?: expected.first()).digitToInt() + 1) % 10
+
+        viewModel.pressDigit(wrong)
+
+        assertEquals(expected.first() + wrong.toString(), viewModel.inputPresentation.value.attemptedDigits)
+        assertTrue(viewModel.uiState.value.hadMistake)
+        assertEquals("", viewModel.uiState.value.enteredDigits)
+        assertFalse(viewModel.inputPresentation.value.acceptsInput)
+        assertTrue(viewModel.feedback.value is QuizFeedback.Incorrect)
+        assertEquals(startedAt, viewModel.uiState.value.interactiveStartedAtMillis)
+        assertEquals(100, com.example.practicetimestables.ui.theme.AppMotion.QuizIncorrectDigitConfirmationMillis)
+
+        viewModel.pressDigit(expected.first().digitToInt())
+        assertEquals(expected.first() + wrong.toString(), viewModel.inputPresentation.value.attemptedDigits)
+
+        viewModel.finishIncorrectDigitConfirmation()
+
+        assertEquals(null, viewModel.inputPresentation.value.attemptedDigits)
+        assertTrue(viewModel.inputPresentation.value.acceptsInput)
+        assertEquals(startedAt, viewModel.uiState.value.interactiveStartedAtMillis)
+    }
+
+    @Test
+    fun incorrectThirdDigitUsesTheExistingThirdAnswerSlot() {
+        val viewModel = createViewModel(setOf(12), reverse = true)
+        viewModel.questionBecameInteractive()
+        val expected = viewModel.uiState.value.currentQuestion.expectedAnswer.toString()
+        assertEquals(3, expected.length)
+        viewModel.pressDigit(expected[0].digitToInt())
+        viewModel.pressDigit(expected[1].digitToInt())
+        val wrong = (expected[2].digitToInt() + 1) % 10
+
+        viewModel.pressDigit(wrong)
+
+        assertEquals(expected.take(2) + wrong, viewModel.inputPresentation.value.attemptedDigits)
+        assertEquals("", viewModel.uiState.value.enteredDigits)
+        assertTrue(viewModel.uiState.value.hadMistake)
     }
 
     @Test
@@ -105,6 +154,7 @@ class QuizViewModelTest {
         val expected = viewModel.uiState.value.currentQuestion.expectedAnswer.toString()
         viewModel.pressDigit((expected.first().digitToInt() + 1) % 10)
         val incorrectId = (viewModel.feedback.value as QuizFeedback.Incorrect).id
+        viewModel.finishIncorrectDigitConfirmation()
 
         enterCorrectAnswer(viewModel)
 

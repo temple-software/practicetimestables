@@ -85,10 +85,12 @@ fun AppNavHost(
             val quizViewModel: QuizViewModel = viewModel(factory = QuizViewModel.factory(selectedTables))
             val quizUiState by quizViewModel.uiState.collectAsStateWithLifecycle()
             val quizFeedback by quizViewModel.feedback.collectAsStateWithLifecycle()
+            val quizInputPresentation by quizViewModel.inputPresentation.collectAsStateWithLifecycle()
             QuizScreen(
                 language = language,
                 uiState = quizUiState,
                 feedback = quizFeedback,
+                inputPresentation = quizInputPresentation,
                 onLanguageSelected = onLanguageSelected,
                 onQuestionReady = quizViewModel::questionBecameInteractive,
                 onDigitPressed = quizViewModel::pressDigit,
