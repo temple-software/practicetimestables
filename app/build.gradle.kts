@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.practicetimestables"
+    namespace = "com.templesoftware.practicetimestables"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.practicetimestables"
+        applicationId = "com.templesoftware.practicetimestables"
         minSdk = 24
         targetSdk = 37
         versionCode = 1

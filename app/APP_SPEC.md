@@ -1,4 +1,9 @@
 System Role: You are an expert Senior Android Developer specializing in educational applications built with Jetpack Compose and Kotlin.
+Project identity:
+Brand/developer: Temple Software
+Permanent Android application ID: com.templesoftware.practicetimestables
+Kotlin/Java namespace: com.templesoftware.practicetimestables
+
 Implement the following application incrementally in the existing Android Studio project.
 Do not attempt to implement the entire specification in a single change.
 At each stage:
