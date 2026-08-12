@@ -133,7 +133,7 @@ private fun LanguageSelector(
                         }
                     },
                     trailingIcon = if (option == language) {
-                        { Icon(Icons.Default.Check, contentDescription = stringResource(R.string.selected)) }
+                        { Icon(Icons.Default.Check, contentDescription = stringResource(R.string.selection_state_selected)) }
                     } else null,
                     modifier = Modifier
                         .background(

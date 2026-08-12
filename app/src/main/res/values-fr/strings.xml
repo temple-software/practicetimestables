@@ -1,10 +1,9 @@
 <resources>
     <string name="app_name">Tables de multiplication</string>
-    <string name="language">Langue</string>
     <string name="language_english">Anglais (R.-U.)</string>
     <string name="language_french">Français</string>
     <string name="language_selector_description">Langue : %1$s</string>
-    <string name="selected">Sélectionné</string>
+    <string name="selection_state_selected">Sélectionné</string>
     <string name="navigate_back">Retour</string>
     <string name="navigate_home">Retour à l’accueil</string>
     <string name="screen_home">Accueil</string>
@@ -18,8 +17,6 @@
     <string name="repeat_out_loud">Répète à voix haute</string>
     <string name="choose_tables">Choisis tes tables de multiplication</string>
     <string name="choose_tables_supporting_text">Choisis une ou plusieurs tables à travailler aujourd’hui</string>
-    <string name="stage_one_placeholder">Cet écran sera ajouté lors d’une étape ultérieure.</string>
-    <string name="quiz_clear">Effacer</string>
     <string name="quiz_timer_description">Temps restant : %1$s</string>
     <string name="quiz_answer_description">Réponse actuelle : %1$s</string>
     <string name="quiz_abandon_title">Quitter ce quiz ?</string>

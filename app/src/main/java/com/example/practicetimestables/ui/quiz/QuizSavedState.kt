@@ -27,7 +27,11 @@ internal object QuizSavedState {
     private const val PHASE = "quiz_phase"
     const val DEADLINE = "quiz_deadline"
 
-    fun restore(handle: SavedStateHandle): QuizState? {
+    fun restore(handle: SavedStateHandle): QuizState? = runCatching {
+        restoreValidSnapshot(handle)
+    }.getOrNull()
+
+    private fun restoreValidSnapshot(handle: SavedStateHandle): QuizState? {
         if (handle.get<Int>(VERSION) != 1) return null
         val tables = handle.get<ArrayList<Int>>(TABLES)?.toList().orEmpty()
         if (tables.isEmpty()) return null

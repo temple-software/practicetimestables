@@ -10,7 +10,9 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
 
 data class ResponsiveLayoutInfo(
     val orientation: Int,
@@ -28,6 +30,8 @@ data class ResponsiveLayoutInfo(
 @Composable
 fun currentResponsiveLayoutInfo(): ResponsiveLayoutInfo {
     val configuration = LocalConfiguration.current
+    val containerSize = LocalWindowInfo.current.containerSize
+    val density = LocalDensity.current
     val view = LocalView.current
     val displayManager = remember(view) {
         view.context.getSystemService(DisplayManager::class.java)
@@ -55,8 +59,8 @@ fun currentResponsiveLayoutInfo(): ResponsiveLayoutInfo {
 
     return ResponsiveLayoutInfo(
         orientation = configuration.orientation,
-        widthDp = configuration.screenWidthDp,
-        heightDp = configuration.screenHeightDp,
+        widthDp = with(density) { containerSize.width.toDp().value.toInt() },
+        heightDp = with(density) { containerSize.height.toDp().value.toInt() },
         displayRotation = displayRotation,
     )
 }

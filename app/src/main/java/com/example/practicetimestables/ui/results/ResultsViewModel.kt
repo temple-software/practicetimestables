@@ -20,10 +20,12 @@ data class ResultsUiState(
 class ResultsViewModel(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val restoredResponses = savedStateHandle
-        .get<ArrayList<String>>(RESPONSES)
-        .orEmpty()
-        .map(::decodeResponse)
+    private val restoredResponses = runCatching {
+        savedStateHandle
+            .get<ArrayList<String>>(RESPONSES)
+            .orEmpty()
+            .map(::decodeResponse)
+    }.getOrDefault(emptyList())
     private val _uiState = MutableStateFlow(
         restoredResponses.takeIf(List<CompletedResponse>::isNotEmpty)?.let {
             ResultsUiState(QuizScoringEngine.score(it))

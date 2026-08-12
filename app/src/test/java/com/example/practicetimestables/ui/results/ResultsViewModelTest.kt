@@ -78,6 +78,18 @@ class ResultsViewModelTest {
         assertFalse(restored.claimFanfare())
     }
 
+    @Test
+    fun malformedRestoredResponsesFailGracefullyInsteadOfCrashing() {
+        val handle = SavedStateHandle(
+            mapOf("results_completed_responses" to arrayListOf("not:a:valid:response")),
+        )
+
+        val restored = ResultsViewModel(handle)
+
+        assertNull(restored.uiState.value)
+        assertFalse(restored.claimFanfare())
+    }
+
     private fun response(table: Int, accurate: Boolean, millis: Long) = CompletedResponse(
         fact = MultiplicationFact(1, table),
         selectedTable = table,

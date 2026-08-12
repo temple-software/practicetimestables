@@ -13,6 +13,7 @@ class QuestionPoolTest {
         assertEquals(144, quizDurationSeconds(2))
         assertEquals(168, quizDurationSeconds(3))
         assertEquals(192, quizDurationSeconds(4))
+        assertEquals(360, quizDurationSeconds(11))
         assertThrows(IllegalArgumentException::class.java) { quizDurationSeconds(0) }
     }
 

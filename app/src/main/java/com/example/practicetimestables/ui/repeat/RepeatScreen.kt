@@ -97,7 +97,7 @@ fun RepeatScreen(
                 else -> 42.sp
             }
 
-            BoxWithConstraints(
+            Box(
                 modifier = Modifier
                     .widthIn(max = 760.dp)
                     .fillMaxSize()

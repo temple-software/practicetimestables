@@ -48,13 +48,7 @@ private fun LocalizedContent(
     val baseConfiguration = LocalConfiguration.current
     val locale = remember(language) { Locale.forLanguageTag(language.languageTag) }
     val configuration = remember(
-        baseConfiguration.orientation,
-        baseConfiguration.screenWidthDp,
-        baseConfiguration.screenHeightDp,
-        baseConfiguration.smallestScreenWidthDp,
-        baseConfiguration.densityDpi,
-        baseConfiguration.fontScale,
-        baseConfiguration.uiMode,
+        baseConfiguration,
         locale,
     ) {
         Configuration(baseConfiguration).apply { setLocale(locale) }

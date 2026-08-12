@@ -201,6 +201,23 @@ class QuizViewModelTest {
     }
 
     @Test
+    fun malformedSavedSnapshotStartsAFreshValidSessionInsteadOfCrashing() {
+        val handle = SavedStateHandle(
+            mapOf(
+                "quiz_snapshot_version" to 1,
+                "quiz_tables" to arrayListOf(2),
+                "quiz_question" to Int.MAX_VALUE,
+            ),
+        )
+
+        val restored = createViewModel(setOf(5, 2), handle = handle)
+
+        assertEquals(listOf(2, 5), restored.uiState.value.selectedTables)
+        assertEquals(QuizPhase.ANSWERING, restored.uiState.value.phase)
+        assertEquals(144, restored.uiState.value.totalSeconds)
+    }
+
+    @Test
     fun timerFormattingNeverProducesNegativeDisplay() {
         assertEquals("2:00", formatQuizTime(120))
         assertEquals("1:07", formatQuizTime(67))
