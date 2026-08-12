@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Tables de multiplication</string>
+    <string name="language">Langue</string>
+    <string name="language_english">Anglais</string>
+    <string name="language_french">Français</string>
+    <string name="navigate_back">Retour</string>
+    <string name="navigate_home">Retour à l’accueil</string>
+    <string name="screen_home">Accueil</string>
+    <string name="screen_refresh">Réviser</string>
+    <string name="screen_repeat">Répéter</string>
+    <string name="screen_quiz">C’est parti</string>
+    <string name="screen_results">Résultats</string>
+    <string name="stage_one_placeholder">Cet écran sera ajouté lors d’une étape ultérieure.</string>
+</resources>
