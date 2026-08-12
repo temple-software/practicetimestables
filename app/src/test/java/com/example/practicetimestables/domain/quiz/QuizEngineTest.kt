@@ -19,7 +19,7 @@ class QuizEngineTest {
 
     @Test
     fun firstHalfAlwaysUsesResultMissingAndBoundaryUsesSecondHalfRule() {
-        val randomizer = QuizTestRandomizer(mutableListOf(1, 2))
+        val randomizer = QuizTestRandomizer(mutableListOf(0))
         val engine = QuizEngine(randomizer)
         val initial = engine.newSession(setOf(2))
         val firstHalf = advanceAfterCorrect(engine, initial.copy(remainingSeconds = 61), 0, 100)
@@ -30,7 +30,26 @@ class QuizEngineTest {
     }
 
     @Test
-    fun allSecondHalfFormatsAndExpectedAnswersAreExplicit() {
+    fun oneTableSecondHalfUsesBothAllowedFormatsAndNeverSecondOperandMissing() {
+        val randomizer = QuizTestRandomizer(mutableListOf(0, 1))
+        val engine = QuizEngine(randomizer)
+        var state = engine.newSession(setOf(8)).copy(remainingSeconds = 60)
+        val formats = mutableListOf<QuestionFormat>()
+
+        repeat(2) { index ->
+            state = advanceAfterCorrect(engine, state, index * 100L, index * 100L + 50)
+            formats += state.currentQuestion.format
+        }
+
+        assertEquals(
+            setOf(QuestionFormat.FIRST_OPERAND_MISSING, QuestionFormat.RESULT_MISSING),
+            formats.toSet(),
+        )
+        assertFalse(formats.contains(QuestionFormat.SECOND_OPERAND_MISSING))
+    }
+
+    @Test
+    fun multipleTablesSecondHalfStillUsesAllFormatsAndExpectedAnswersAreExplicit() {
         val fact = MultiplicationFact(7, 8)
         assertEquals(56, QuizQuestion(fact, QuestionFormat.RESULT_MISSING).expectedAnswer)
         assertEquals(7, QuizQuestion(fact, QuestionFormat.FIRST_OPERAND_MISSING).expectedAnswer)
@@ -38,10 +57,9 @@ class QuizEngineTest {
 
         val randomizer = QuizTestRandomizer(mutableListOf(0, 1, 2))
         val engine = QuizEngine(randomizer)
-        var state = engine.newSession(setOf(8)).copy(remainingSeconds = 60)
+        var state = engine.newSession(setOf(8, 9)).copy(remainingSeconds = 72)
         val formats = mutableListOf<QuestionFormat>()
         repeat(3) { index ->
-            if (index == 2) state = state.copy(remainingSeconds = 59)
             state = advanceAfterCorrect(engine, state, index * 100L, index * 100L + 50)
             formats += state.currentQuestion.format
         }

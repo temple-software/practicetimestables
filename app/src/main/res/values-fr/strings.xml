@@ -19,4 +19,11 @@
     <string name="choose_tables">Choisis tes tables de multiplication</string>
     <string name="choose_tables_supporting_text">Choisis une ou plusieurs tables à travailler aujourd’hui</string>
     <string name="stage_one_placeholder">Cet écran sera ajouté lors d’une étape ultérieure.</string>
+    <string name="quiz_clear">Effacer</string>
+    <string name="quiz_timer_description">Temps restant : %1$s</string>
+    <string name="quiz_answer_description">Réponse actuelle : %1$s</string>
+    <string name="quiz_abandon_title">Quitter ce quiz ?</string>
+    <string name="quiz_abandon_message">Ta progression dans ce quiz sera perdue.</string>
+    <string name="quiz_abandon_confirm">Quitter le quiz</string>
+    <string name="quiz_abandon_stay">Continuer à jouer</string>
 </resources>

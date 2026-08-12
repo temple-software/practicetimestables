@@ -19,4 +19,11 @@
     <string name="choose_tables">Choose your times tables</string>
     <string name="choose_tables_supporting_text">Pick one or more tables to practise today</string>
     <string name="stage_one_placeholder">This screen will be added in a later stage.</string>
+    <string name="quiz_clear">Clear</string>
+    <string name="quiz_timer_description">Time remaining: %1$s</string>
+    <string name="quiz_answer_description">Current answer: %1$s</string>
+    <string name="quiz_abandon_title">Leave this quiz?</string>
+    <string name="quiz_abandon_message">Your progress in this quiz will be lost.</string>
+    <string name="quiz_abandon_confirm">Leave quiz</string>
+    <string name="quiz_abandon_stay">Keep playing</string>
 </resources>

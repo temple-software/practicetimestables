@@ -13,7 +13,7 @@ class QuizEngine(private val randomizer: QuizRandomizer = KotlinQuizRandomizer()
             totalSeconds = totalSeconds,
             remainingSeconds = totalSeconds,
             pool = draw.pool,
-            currentQuestion = questionFor(draw.fact, totalSeconds, totalSeconds),
+            currentQuestion = questionFor(draw.fact, totalSeconds, totalSeconds, orderedTables.size),
         )
     }
 
@@ -105,7 +105,12 @@ class QuizEngine(private val randomizer: QuizRandomizer = KotlinQuizRandomizer()
             return QuizTransition(state.copy(phase = QuizPhase.READY_TO_FINISH), QuizEvent.ReadyToFinish)
         }
         val draw = state.pool.draw(randomizer)
-        val question = questionFor(draw.fact, state.remainingSeconds, state.totalSeconds)
+        val question = questionFor(
+            draw.fact,
+            state.remainingSeconds,
+            state.totalSeconds,
+            state.selectedTables.size,
+        )
         return QuizTransition(
             state.copy(
                 pool = draw.pool,
@@ -119,12 +124,29 @@ class QuizEngine(private val randomizer: QuizRandomizer = KotlinQuizRandomizer()
         )
     }
 
-    private fun questionFor(fact: MultiplicationFact, remaining: Int, total: Int): QuizQuestion {
+    private fun questionFor(
+        fact: MultiplicationFact,
+        remaining: Int,
+        total: Int,
+        selectedTableCount: Int,
+    ): QuizQuestion {
         val format = if (remaining * 2 > total) {
             QuestionFormat.RESULT_MISSING
         } else {
-            QuestionFormat.entries[randomizer.nextFormatIndex(QuestionFormat.entries.size)]
+            val allowedFormats = if (selectedTableCount == 1) {
+                SingleTableSecondHalfFormats
+            } else {
+                QuestionFormat.entries
+            }
+            allowedFormats[randomizer.nextFormatIndex(allowedFormats.size)]
         }
         return QuizQuestion(fact, format)
+    }
+
+    private companion object {
+        val SingleTableSecondHalfFormats = listOf(
+            QuestionFormat.FIRST_OPERAND_MISSING,
+            QuestionFormat.RESULT_MISSING,
+        )
     }
 }

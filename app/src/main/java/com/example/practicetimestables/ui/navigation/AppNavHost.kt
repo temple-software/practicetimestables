@@ -21,6 +21,8 @@ import com.example.practicetimestables.ui.components.PracticeAppBar
 import com.example.practicetimestables.ui.home.HomeScreen
 import com.example.practicetimestables.ui.refresh.RefreshScreen
 import com.example.practicetimestables.ui.refresh.RefreshViewModel
+import com.example.practicetimestables.ui.quiz.QuizScreen
+import com.example.practicetimestables.ui.quiz.QuizViewModel
 import com.example.practicetimestables.ui.repeat.RepeatScreen
 import com.example.practicetimestables.ui.repeat.RepeatViewModel
 
@@ -79,11 +81,32 @@ fun AppNavHost(
                 onQuizClick = { navController.navigate(AppDestination.QUIZ.route) },
             )
         }
+        composable(AppDestination.QUIZ.route) {
+            val quizViewModel: QuizViewModel = viewModel(factory = QuizViewModel.factory(selectedTables))
+            val quizUiState by quizViewModel.uiState.collectAsStateWithLifecycle()
+            QuizScreen(
+                language = language,
+                uiState = quizUiState,
+                onLanguageSelected = onLanguageSelected,
+                onQuestionReady = quizViewModel::questionBecameInteractive,
+                onDigitPressed = quizViewModel::pressDigit,
+                onClearPressed = quizViewModel::clear,
+                onAbandonConfirmed = {
+                    navController.popBackStack(AppDestination.HOME.route, inclusive = false)
+                },
+                onReadyForResults = {
+                    navController.navigate(AppDestination.RESULTS.route) {
+                        popUpTo(AppDestination.QUIZ.route) { inclusive = true }
+                    }
+                },
+            )
+        }
         AppDestination.all
             .filterNot {
                 it == AppDestination.HOME ||
                     it == AppDestination.REFRESH ||
-                    it == AppDestination.REPEAT
+                    it == AppDestination.REPEAT ||
+                    it == AppDestination.QUIZ
             }
             .forEach { destination ->
             composable(destination.route) {
