@@ -6,6 +6,7 @@ Permanent Android application ID: com.templesoftware.practicetimestables
 Kotlin/Java namespace: com.templesoftware.practicetimestables
 Approved launcher-icon identity: a central multiplication `×` with colourful educational numbers in a polished sapphire/blue-violet design.
 Launcher-icon master artwork: `design/app-icon-master.png` (preserve as the source of truth for generated branding assets).
+Google Play store icon: `design/play-store-icon-512.png` (store-listing artwork; keep separate from adaptive and legacy launcher resources).
 
 Implement the following application incrementally in the existing Android Studio project.
 Do not attempt to implement the entire specification in a single change.
