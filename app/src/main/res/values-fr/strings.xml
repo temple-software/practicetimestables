@@ -12,6 +12,9 @@
     <string name="screen_repeat">Répète pour apprendre</string>
     <string name="screen_quiz">C’est parti</string>
     <string name="screen_results">Résultats</string>
+    <string name="refresh_table_title">Table de %1$d</string>
+    <string name="action_next">Suivant</string>
+    <string name="action_repeat">Répéter</string>
     <string name="choose_tables">Choisis tes tables de multiplication</string>
     <string name="choose_tables_supporting_text">Choisis une ou plusieurs tables à travailler aujourd’hui</string>
     <string name="stage_one_placeholder">Cet écran sera ajouté lors d’une étape ultérieure.</string>

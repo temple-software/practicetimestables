@@ -6,16 +6,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.practicetimestables.R
 import com.example.practicetimestables.data.preferences.AppLanguage
 import com.example.practicetimestables.ui.components.PracticeAppBar
 import com.example.practicetimestables.ui.home.HomeScreen
+import com.example.practicetimestables.ui.refresh.RefreshScreen
+import com.example.practicetimestables.ui.refresh.RefreshViewModel
 
 @Composable
 fun AppNavHost(
@@ -40,7 +45,25 @@ fun AppNavHost(
                 onQuizClick = { navController.navigate(AppDestination.QUIZ.route) },
             )
         }
-        AppDestination.all.filterNot { it == AppDestination.HOME }.forEach { destination ->
+        composable(AppDestination.REFRESH.route) {
+            val refreshViewModel: RefreshViewModel = viewModel(
+                factory = RefreshViewModel.factory(selectedTables),
+            )
+            val refreshUiState by refreshViewModel.uiState.collectAsStateWithLifecycle()
+            RefreshScreen(
+                language = language,
+                uiState = refreshUiState,
+                onLanguageSelected = onLanguageSelected,
+                onBackClick = {
+                    navController.popBackStack(AppDestination.HOME.route, inclusive = false)
+                },
+                onNextClick = refreshViewModel::advance,
+                onRepeatClick = { navController.navigate(AppDestination.REPEAT.route) },
+            )
+        }
+        AppDestination.all
+            .filterNot { it == AppDestination.HOME || it == AppDestination.REFRESH }
+            .forEach { destination ->
             composable(destination.route) {
                 DestinationSkeleton(
                     destination = destination,
@@ -49,7 +72,13 @@ fun AppNavHost(
                     onNavigationClick = {
                         when (destination.navigationAction) {
                             NavigationAction.NONE -> Unit
-                            NavigationAction.BACK -> navController.navigateUp()
+                            NavigationAction.BACK -> {
+                                if (destination == AppDestination.REPEAT) {
+                                    navController.popBackStack(AppDestination.HOME.route, inclusive = false)
+                                } else {
+                                    navController.navigateUp()
+                                }
+                            }
                             NavigationAction.HOME -> navController.navigate(AppDestination.startDestination.route) {
                                 popUpTo(AppDestination.startDestination.route) { inclusive = false }
                                 launchSingleTop = true

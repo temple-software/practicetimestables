@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -38,6 +39,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,9 +59,11 @@ import com.example.practicetimestables.R
 import com.example.practicetimestables.data.preferences.AppLanguage
 import com.example.practicetimestables.ui.components.PracticeAppBar
 import com.example.practicetimestables.ui.navigation.NavigationAction
+import com.example.practicetimestables.ui.layout.currentResponsiveLayoutInfo
 import com.example.practicetimestables.ui.theme.AppMotion
 
 private val MaxHomeWidth = 680.dp
+private val MaxLandscapeHomeWidth = 960.dp
 private val MaxSelectorWidth = 400.dp
 private val TableGap = 10.dp
 
@@ -73,11 +77,12 @@ fun HomeScreen(
     onRepeatClick: () -> Unit,
     onQuizClick: () -> Unit,
 ) {
+    val responsiveLayout = currentResponsiveLayoutInfo()
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             PracticeAppBar(
-                title = stringResource(R.string.screen_home),
+                title = stringResource(R.string.choose_tables),
                 navigationAction = NavigationAction.NONE,
                 language = language,
                 onNavigationClick = {},
@@ -97,38 +102,88 @@ fun HomeScreen(
                 else -> 16.dp
             }
             val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
-            val hasDistributionSpace = maxHeight >= 620.dp * fontScale
+            val hasDistributionSpace = responsiveLayout.isPortrait && maxHeight >= 620.dp * fontScale
+            val hasLandscapeSpace = responsiveLayout.isLandscape &&
+                maxHeight >= 220.dp * fontScale && fontScale <= 1.3f
 
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                HomeBackground()
-                if (hasDistributionSpace) {
-                    SpaciousHomeContent(
-                        selectedTables = selectedTables,
-                        onTableToggled = onTableToggled,
-                        onRefreshClick = onRefreshClick,
-                        onRepeatClick = onRepeatClick,
-                        onQuizClick = onQuizClick,
-                        modifier = Modifier
-                            .widthIn(max = MaxHomeWidth)
-                            .fillMaxSize()
-                            .padding(horizontal = horizontalPadding, vertical = 20.dp),
-                    )
-                } else {
-                    ConstrainedHomeContent(
-                        selectedTables = selectedTables,
-                        onTableToggled = onTableToggled,
-                        onRefreshClick = onRefreshClick,
-                        onRepeatClick = onRepeatClick,
-                        onQuizClick = onQuizClick,
-                        modifier = Modifier
-                            .widthIn(max = MaxHomeWidth)
-                            .fillMaxWidth()
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = horizontalPadding, vertical = 16.dp),
-                    )
+            key(responsiveLayout.displayRotation) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                    HomeBackground()
+                    if (hasLandscapeSpace) {
+                        LandscapeHomeContent(
+                            selectedTables = selectedTables,
+                            onTableToggled = onTableToggled,
+                            onRefreshClick = onRefreshClick,
+                            onRepeatClick = onRepeatClick,
+                            onQuizClick = onQuizClick,
+                            modifier = Modifier
+                                .widthIn(max = MaxLandscapeHomeWidth)
+                                .fillMaxSize()
+                                .padding(horizontal = horizontalPadding, vertical = 6.dp),
+                        )
+                    } else if (hasDistributionSpace) {
+                        SpaciousHomeContent(
+                            selectedTables = selectedTables,
+                            onTableToggled = onTableToggled,
+                            onRefreshClick = onRefreshClick,
+                            onRepeatClick = onRepeatClick,
+                            onQuizClick = onQuizClick,
+                            modifier = Modifier
+                                .widthIn(max = MaxHomeWidth)
+                                .fillMaxSize()
+                                .padding(horizontal = horizontalPadding, vertical = 20.dp),
+                        )
+                    } else {
+                        ConstrainedHomeContent(
+                            selectedTables = selectedTables,
+                            onTableToggled = onTableToggled,
+                            onRefreshClick = onRefreshClick,
+                            onRepeatClick = onRepeatClick,
+                            onQuizClick = onQuizClick,
+                            modifier = Modifier
+                                .widthIn(max = MaxHomeWidth)
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState())
+                                .padding(horizontal = horizontalPadding, vertical = 16.dp),
+                        )
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun LandscapeHomeContent(
+    selectedTables: Set<Int>,
+    onTableToggled: (Int) -> Unit,
+    onRefreshClick: () -> Unit,
+    onRepeatClick: () -> Unit,
+    onQuizClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(28.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier.weight(1.2f).fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            TableSelector(
+                selectedTables = selectedTables,
+                onTableToggled = onTableToggled,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        ActionPanel(
+            onRefreshClick = onRefreshClick,
+            onRepeatClick = onRepeatClick,
+            onQuizClick = onQuizClick,
+            evenlyDistributed = true,
+            modifier = Modifier.weight(0.8f).fillMaxHeight(),
+        )
     }
 }
 
@@ -164,8 +219,8 @@ private fun SpaciousHomeContent(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        HomeHeading()
-        Spacer(Modifier.height(20.dp))
+        HomeSupportingText()
+        Spacer(Modifier.height(16.dp))
         TableSelector(selectedTables, onTableToggled)
         ActionPanel(
             onRefreshClick = onRefreshClick,
@@ -187,8 +242,8 @@ private fun ConstrainedHomeContent(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        HomeHeading()
-        Spacer(Modifier.height(16.dp))
+        HomeSupportingText()
+        Spacer(Modifier.height(12.dp))
         TableSelector(selectedTables, onTableToggled)
         Spacer(Modifier.height(16.dp))
         ActionPanel(onRefreshClick, onRepeatClick, onQuizClick, evenlyDistributed = false)
@@ -197,37 +252,34 @@ private fun ConstrainedHomeContent(
 }
 
 @Composable
-private fun HomeHeading() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = stringResource(R.string.choose_tables),
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.choose_tables_supporting_text),
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-        )
-    }
+private fun HomeSupportingText() {
+    Text(
+        text = stringResource(R.string.choose_tables_supporting_text),
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.bodyLarge,
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable
 private fun TableSelector(
     selectedTables: Set<Int>,
     onTableToggled: (Int) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(
-        modifier = Modifier.fillMaxWidth().widthIn(max = MaxSelectorWidth),
+        modifier = modifier.fillMaxWidth().widthIn(max = MaxSelectorWidth),
         contentAlignment = Alignment.Center,
     ) {
         val availableForControls = (maxWidth.coerceAtMost(MaxSelectorWidth) - TableGap * 4)
-        val controlSize = (availableForControls / 5).coerceIn(48.dp, 72.dp)
+        val widthBasedSize = availableForControls / 5
+        val heightBasedSize = if (maxHeight == androidx.compose.ui.unit.Dp.Infinity) {
+            72.dp
+        } else {
+            (maxHeight - TableGap * 2) / 3
+        }
+        val controlSize = minOf(widthBasedSize, heightBasedSize).coerceIn(48.dp, 72.dp)
         val gridWidth = controlSize * 5 + TableGap * 4
         Column(
             modifier = Modifier.width(gridWidth),

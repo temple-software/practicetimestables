@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,41 +38,68 @@ import com.example.practicetimestables.ui.navigation.NavigationAction
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PracticeAppBar(
-    title: String,
+    title: String?,
     navigationAction: NavigationAction,
     language: AppLanguage,
     onNavigationClick: () -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
+    centeredTitle: Boolean = true,
 ) {
-    TopAppBar(
-        title = { Text(title, style = MaterialTheme.typography.titleLarge) },
-        navigationIcon = {
-            when (navigationAction) {
-                NavigationAction.NONE -> Unit
-                NavigationAction.BACK -> IconButton(onClick = onNavigationClick) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.navigate_back),
-                    )
-                }
-                NavigationAction.HOME -> IconButton(onClick = onNavigationClick) {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = stringResource(R.string.navigate_home),
-                    )
-                }
-            }
-        },
-        actions = {
-            LanguageSelector(language = language, onLanguageSelected = onLanguageSelected)
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-            titleContentColor = MaterialTheme.colorScheme.primary,
-            navigationIconContentColor = MaterialTheme.colorScheme.primary,
-            actionIconContentColor = MaterialTheme.colorScheme.primary,
-        ),
+    val titleContent: @Composable () -> Unit = {
+        if (title != null) {
+            Text(title, style = MaterialTheme.typography.titleLarge)
+        }
+    }
+    val navigationContent: @Composable () -> Unit = {
+        NavigationControl(navigationAction, onNavigationClick)
+    }
+    val actionsContent: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {
+        LanguageSelector(language = language, onLanguageSelected = onLanguageSelected)
+    }
+    val colors = TopAppBarDefaults.topAppBarColors(
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        titleContentColor = MaterialTheme.colorScheme.primary,
+        navigationIconContentColor = MaterialTheme.colorScheme.primary,
+        actionIconContentColor = MaterialTheme.colorScheme.primary,
     )
+
+    if (centeredTitle) {
+        CenterAlignedTopAppBar(
+            title = titleContent,
+            navigationIcon = navigationContent,
+            actions = actionsContent,
+            colors = colors,
+        )
+    } else {
+        TopAppBar(
+            title = titleContent,
+            navigationIcon = navigationContent,
+            actions = actionsContent,
+            colors = colors,
+        )
+    }
+}
+
+@Composable
+private fun NavigationControl(
+    navigationAction: NavigationAction,
+    onNavigationClick: () -> Unit,
+) {
+    when (navigationAction) {
+        NavigationAction.NONE -> Unit
+        NavigationAction.BACK -> IconButton(onClick = onNavigationClick) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.navigate_back),
+            )
+        }
+        NavigationAction.HOME -> IconButton(onClick = onNavigationClick) {
+            Icon(
+                imageVector = Icons.Default.Home,
+                contentDescription = stringResource(R.string.navigate_home),
+            )
+        }
+    }
 }
 
 @Composable
