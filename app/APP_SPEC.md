@@ -11,6 +11,8 @@ Google Play feature graphic: `design/play-store-feature-1024x500.png`.
 Google Play English (UK) screenshots: raw captures in `design/store-screenshots/raw/en-GB/`; presentation assets in `design/store-screenshots/final/en-GB/`.
 Google Play French screenshots: raw captures in `design/store-screenshots/raw/fr-FR/`; presentation assets in `design/store-screenshots/final/fr-FR/`.
 
+Release signing uses Google Play App Signing with a separate Temple Software upload key. The upload keystore remains outside Git, and ignored root-level `keystore.properties` supplies its local path, alias, and passwords. Never commit signing keys, passwords, real signing properties, or generated release binaries.
+
 Implement the following application incrementally in the existing Android Studio project.
 Do not attempt to implement the entire specification in a single change.
 At each stage:
